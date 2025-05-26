@@ -16,7 +16,9 @@ import {
   LogIn,
   BarChart,
   ServerCog,
-  ShieldCheck
+  ShieldCheck,
+  Zap,
+  Users
 } from "lucide-react";
 
 export function Header() {
@@ -29,6 +31,8 @@ export function Header() {
     { href: "/contact", label: "Contact", icon: Mail },
     ...(user ? [
       { href: "/dashboard", label: "Dashboard", icon: BarChart },
+      { href: "/leads", label: "Leads", icon: Users },
+      { href: "/marketing", label: "Marketing", icon: Zap },
       { href: "/settings", label: "Settings", icon: Settings },
       { href: "/api", label: "API", icon: ServerCog },
       { href: "/status", label: "System Status", icon: ShieldCheck }

@@ -7,10 +7,9 @@ import { Input } from "@/components/ui/input";
 import { Button } from "@/components/ui/button";
 import { Select, SelectTrigger, SelectValue, SelectContent, SelectItem } from "@/components/ui/select";
 import { Alert, AlertDescription } from "@/components/ui/alert";
-import { Loader2, Search, Download, Database } from "lucide-react";
+import { Loader2, Search, Download, Database, Zap } from "lucide-react";
 import type { Lead, LeadCriteria } from "@/lib/aiServices";
-
-"use client";
+import Link from "next/link";
 
 import { ProtectedRoute } from "@/components/auth/ProtectedRoute";
 
@@ -251,6 +250,20 @@ function LeadCaptureContent() {
                     <Download className="w-4 h-4 mr-2" />
                     Export CSV
                   </Button>
+                  {leads.length > 0 && (
+                    <Link href={{
+                      pathname: "/marketing",
+                      query: { from: "leads" }
+                    }}>
+                      <Button
+                        variant="outline"
+                        className="bg-gray-900/50 border-gray-700"
+                      >
+                        <Zap className="w-4 h-4 mr-2" />
+                        Create Marketing Campaign
+                      </Button>
+                    </Link>
+                  )}
                   {criteria.importToCRM && (
                     <Button
                       variant="outline"

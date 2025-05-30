@@ -80,10 +80,25 @@ export function LoginButton() {
   const auth = useAuth();
   const [isLoading, setIsLoading] = useState(false);
 
-  const handleLogin = async (provider: string) => {
+  const handleLogin = async (providerHandler: string) => {
     try {
       setIsLoading(true);
-      await auth[provider as keyof typeof auth]();
+      switch(providerHandler) {
+        case 'signInWithGoogle':
+          await auth.signInWithGoogle();
+          break;
+        case 'signInWithGithub':
+          await auth.signInWithGithub();
+          break;
+        case 'signInWithMicrosoft':
+          await auth.signInWithMicrosoft();
+          break;
+        case 'signInWithApple':
+          await auth.signInWithApple();
+          break;
+        default:
+          console.error('Unknown provider handler:', providerHandler);
+      }
     } catch (error) {
       console.error("Login error:", error);
     } finally {

@@ -2,7 +2,15 @@
 
 import { createContext, useContext, useEffect, useState } from "react";
 import type { User } from "firebase/auth";
-import { onAuthStateChanged, signInWithEmailAndPassword, signOut } from "firebase/auth";
+import { 
+  onAuthStateChanged, 
+  signInWithEmailAndPassword, 
+  signOut,
+  signInWithPopup,
+  GoogleAuthProvider,
+  GithubAuthProvider,
+  OAuthProvider
+} from "firebase/auth";
 import { auth } from "src/lib/firebase";
 
 interface AuthContextType {
@@ -10,6 +18,10 @@ interface AuthContextType {
   loading: boolean;
   login: (email: string, password: string) => Promise<void>;
   logout: () => Promise<void>;
+  signInWithGoogle: () => Promise<void>;
+  signInWithGithub: () => Promise<void>;
+  signInWithMicrosoft: () => Promise<void>;
+  signInWithApple: () => Promise<void>;
 }
 
 const AuthContext = createContext<AuthContextType>({
@@ -17,6 +29,10 @@ const AuthContext = createContext<AuthContextType>({
   loading: true,
   login: async () => {},
   logout: async () => {},
+  signInWithGoogle: async () => {},
+  signInWithGithub: async () => {},
+  signInWithMicrosoft: async () => {},
+  signInWithApple: async () => {},
 });
 
 export function AuthProvider({ children }: { children: React.ReactNode }) {
@@ -50,8 +66,57 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
     }
   };
 
+  const signInWithGoogle = async () => {
+    try {
+      const provider = new GoogleAuthProvider();
+      await signInWithPopup(auth, provider);
+    } catch (error) {
+      console.error("Google sign-in error:", error);
+      throw error;
+    }
+  };
+
+  const signInWithGithub = async () => {
+    try {
+      const provider = new GithubAuthProvider();
+      await signInWithPopup(auth, provider);
+    } catch (error) {
+      console.error("GitHub sign-in error:", error);
+      throw error;
+    }
+  };
+
+  const signInWithMicrosoft = async () => {
+    try {
+      const provider = new OAuthProvider('microsoft.com');
+      await signInWithPopup(auth, provider);
+    } catch (error) {
+      console.error("Microsoft sign-in error:", error);
+      throw error;
+    }
+  };
+
+  const signInWithApple = async () => {
+    try {
+      const provider = new OAuthProvider('apple.com');
+      await signInWithPopup(auth, provider);
+    } catch (error) {
+      console.error("Apple sign-in error:", error);
+      throw error;
+    }
+  };
+
   return (
-    <AuthContext.Provider value={{ user, loading, login, logout }}>
+    <AuthContext.Provider value={{ 
+      user, 
+      loading, 
+      login, 
+      logout, 
+      signInWithGoogle, 
+      signInWithGithub, 
+      signInWithMicrosoft, 
+      signInWithApple 
+    }}>
       {children}
     </AuthContext.Provider>
   );

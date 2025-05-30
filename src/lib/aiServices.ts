@@ -103,7 +103,7 @@ export async function captureLeads(criteria: LeadCriteria): Promise<Lead[]> {
     
     // Enrich leads if requested
     if (criteria.enrichData) {
-      return await Promise.all(leads.map(lead => enrichLeadData(lead, model)));
+      return await Promise.all(leads.map((lead: any) => enrichLeadData(lead, model)));
     }
     
     return leads.slice(0, criteria.leadCount);

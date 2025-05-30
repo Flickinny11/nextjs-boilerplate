@@ -1,4 +1,4 @@
-import { openRouterService, ChatMessage } from "./openRouterService";
+import { openRouterService, ChatMessage as OpenRouterChatMessage } from "./openRouterService";
 import { segmindService, SegmindServiceId } from "./segmindService";
 import { Lead } from "./aiServices";
 
@@ -83,7 +83,7 @@ export async function getMarketingStrategy(
       }
     }
 
-    const chatMessages: ChatMessage[] = [
+    const chatMessages: OpenRouterChatMessage[] = [
       { role: "system", content: systemPrompt },
       ...messages
     ];
@@ -157,7 +157,7 @@ async function analyzeMediaRequest(request: MarketingContentRequest): Promise<{
     Return JSON with: recommendedVideoService, recommendedImageService, enhancedPrompt
     `;
 
-    const messages: ChatMessage[] = [
+    const messages: OpenRouterChatMessage[] = [
       {
         role: "system", 
         content: "You are an AI media service selector. Analyze requests and recommend the best generation service."
@@ -207,7 +207,7 @@ async function generateTextContent(request: MarketingContentRequest): Promise<Te
       });
     }
     
-    const messages: ChatMessage[] = [
+    const messages: OpenRouterChatMessage[] = [
       { 
         role: "system", 
         content: "You are a professional copywriter specializing in marketing content creation." 
@@ -309,7 +309,7 @@ async function generateVideoContent(
 
     // Determine video duration based on service capabilities
     const service = segmindService.getAvailableServices()[serviceId];
-    const maxDuration = service?.maxDuration || 5;
+    const maxDuration = (service as any)?.maxDuration || 5;
     const duration = Math.min(request.videoDuration || 5, maxDuration);
 
     const segmindResponse = await segmindService.generateVideo(serviceId, {

@@ -11,6 +11,7 @@ import {
   OrganizationBilling,
   BillingRecord
 } from './organizationTypes';
+import { emailService } from './emailService';
 
 export class OrganizationService {
   private static instance: OrganizationService;
@@ -295,6 +296,17 @@ export class OrganizationService {
     orgInvitations.push(invitation);
     this.invitations.set(orgId, orgInvitations);
 
+    // Send invitation email
+    try {
+      const inviterMember = members.find(m => m.userId === invitedBy);
+      const inviterName = inviterMember?.name || 'Team Administrator';
+      
+      await emailService.sendInvitationEmail(invitation, org, inviterName);
+    } catch (error) {
+      console.error('Failed to send invitation email:', error);
+      // Don't fail the invitation creation if email fails
+    }
+
     return invitation;
   }
 
@@ -323,6 +335,21 @@ export class OrganizationService {
         invitation.status = 'accepted';
 
         const org = this.organizations.get(orgId);
+        
+        // Send welcome email
+        if (org) {
+          try {
+            await emailService.sendWelcomeEmail(
+              invitation.email,
+              member.name,
+              org,
+              invitation.role
+            );
+          } catch (error) {
+            console.error('Failed to send welcome email:', error);
+          }
+        }
+
         return { success: true, organization: org, member };
       }
     }
@@ -346,6 +373,25 @@ export class OrganizationService {
     org.billing.creditsRemaining = Math.max(0, org.billing.creditsAllocated - org.billing.creditsUsed);
     
     this.organizations.set(orgId, org);
+
+    // Check for usage alerts
+    const usagePercentage = Math.round((org.billing.creditsUsed / org.billing.creditsAllocated) * 100);
+    
+    if (org.settings.usageAlerts.enabled && usagePercentage >= org.settings.usageAlerts.threshold) {
+      try {
+        // Get admin emails for alerts
+        const members = this.members.get(orgId) || [];
+        const adminEmails = members
+          .filter(m => ['owner', 'admin'].includes(m.role) && m.status === 'active')
+          .map(m => m.email);
+
+        if (adminEmails.length > 0) {
+          await emailService.sendUsageAlertEmail(org, adminEmails, usagePercentage);
+        }
+      } catch (error) {
+        console.error('Failed to send usage alert email:', error);
+      }
+    }
 
     // Update usage tracking (implementation would store in database)
     console.log(`Organization ${orgId} used ${creditsUsed} credits (cost: $${cost})`);

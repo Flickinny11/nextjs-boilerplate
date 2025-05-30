@@ -16,16 +16,20 @@ export async function GET(request: NextRequest) {
     // Get user's credit balance
     const balance = await paymentService.getCreditBalance(userId)
 
-    // Get API service credits
-    const openaiCredits = await paymentService.getAPICredits('openai')
-    const anthropicCredits = await paymentService.getAPICredits('anthropic')
+    // Get usage analytics
+    const analytics = await paymentService.getUsageAnalytics(userId)
+
+    // Get recent usage history
+    const usageHistory = await paymentService.getAPIUsageHistory(userId)
 
     return NextResponse.json({
       userCredits: balance,
-      apiCredits: {
-        openai: openaiCredits,
-        anthropic: anthropicCredits
-      }
+      analytics: {
+        totalCost: analytics.totalCost,
+        totalTokens: analytics.totalTokens,
+        modelUsage: analytics.modelUsage
+      },
+      recentUsage: usageHistory.slice(-10) // Last 10 API calls
     }, { status: 200 })
 
   } catch (error) {

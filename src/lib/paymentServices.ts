@@ -1,3 +1,5 @@
+import { openRouterService } from "./openRouterService";
+
 interface PaymentPlan {
   id: string;
   name: string;
@@ -18,6 +20,14 @@ interface PaymentResult {
   credits?: number;
 }
 
+interface APIUsage {
+  model: string;
+  promptTokens: number;
+  completionTokens: number;
+  cost: number;
+  timestamp: Date;
+}
+
 // Available payment plans
 export const PAYMENT_PLANS: PaymentPlan[] = [
   {
@@ -27,7 +37,7 @@ export const PAYMENT_PLANS: PaymentPlan[] = [
     price: 49.99
   },
   {
-    id: 'pro',
+    id: 'pro', 
     name: '1,000 Credits',
     credits: 1000,
     price: 89.99
@@ -42,13 +52,11 @@ export const PAYMENT_PLANS: PaymentPlan[] = [
 
 export class PaymentService {
   private static instance: PaymentService;
-  private apiCredits: Map<string, number> = new Map();
   private userCredits: Map<string, UserCredits> = new Map();
+  private apiUsageHistory: Map<string, APIUsage[]> = new Map();
 
   private constructor() {
-    // Initialize with some default values for demo
-    this.apiCredits.set('openai', 1000);
-    this.apiCredits.set('anthropic', 1000);
+    // Initialize with demo data
   }
 
   public static getInstance(): PaymentService {
@@ -66,8 +74,7 @@ export class PaymentService {
         throw new Error('Invalid plan selected');
       }
 
-      // TODO: Integrate with actual payment processor (Stripe, etc.)
-      // For now, simulate a successful payment
+      // TODO: Integrate with Stripe
       const transactionId = `txn_${Date.now()}`;
 
       // Add credits to user's account
@@ -103,7 +110,7 @@ export class PaymentService {
     });
   }
 
-  // Check if user has enough credits
+  // Check if user has enough credits  
   async hasEnoughCredits(userId: string, required: number): Promise<boolean> {
     const credits = this.userCredits.get(userId);
     return credits ? credits.available >= required : false;
@@ -142,45 +149,69 @@ export class PaymentService {
     );
   }
 
-  // Auto-replenish API credits when running low
-  async checkAndReplenishAPICredits(service: 'openai' | 'anthropic'): Promise<void> {
-    const currentCredits = this.apiCredits.get(service) || 0;
-    const threshold = 100; // Replenish when credits fall below this number
-
-    if (currentCredits < threshold) {
-      try {
-        // TODO: Implement actual API credit purchase logic
-        // For now, just simulate adding more credits
-        this.apiCredits.set(service, currentCredits + 1000);
-        console.log(`Replenished ${service} API credits`);
-      } catch (error) {
-        console.error(`Failed to replenish ${service} API credits:`, error);
-      }
-    }
-  }
-
-  // Track API usage
-  async trackAPIUsage(userId: string, service: 'openai' | 'anthropic', creditsUsed: number): Promise<void> {
+  // Track OpenRouter API usage with real costs
+  async trackOpenRouterUsage(
+    userId: string, 
+    model: string, 
+    promptTokens: number, 
+    completionTokens: number
+  ): Promise<void> {
     try {
+      // Calculate real cost using OpenRouter pricing
+      const cost = openRouterService.calculateCost(model, promptTokens, completionTokens);
+      
+      // Convert cost to credits (e.g., $0.01 = 1 credit)
+      const creditsUsed = Math.ceil(cost * 100);
+
       // Deduct from user's credits
       await this.deductCredits(userId, creditsUsed);
 
-      // Deduct from API service credits
-      const currentApiCredits = this.apiCredits.get(service) || 0;
-      this.apiCredits.set(service, currentApiCredits - creditsUsed);
+      // Track usage history
+      const usage: APIUsage = {
+        model,
+        promptTokens,
+        completionTokens,
+        cost,
+        timestamp: new Date()
+      };
 
-      // Check if we need to replenish API credits
-      await this.checkAndReplenishAPICredits(service);
+      const userHistory = this.apiUsageHistory.get(userId) || [];
+      userHistory.push(usage);
+      this.apiUsageHistory.set(userId, userHistory);
+
     } catch (error) {
-      console.error('Error tracking API usage:', error);
+      console.error('Error tracking OpenRouter usage:', error);
     }
   }
 
-  // Get API credit balance
-  async getAPICredits(service: 'openai' | 'anthropic'): Promise<number> {
-    return this.apiCredits.get(service) || 0;
+  // Get API usage history
+  async getAPIUsageHistory(userId: string): Promise<APIUsage[]> {
+    return this.apiUsageHistory.get(userId) || [];
+  }
+
+  // Get usage analytics
+  async getUsageAnalytics(userId: string): Promise<{
+    totalCost: number;
+    totalTokens: number;
+    modelUsage: Record<string, number>;
+  }> {
+    const history = this.apiUsageHistory.get(userId) || [];
+    
+    const totalCost = history.reduce((sum, usage) => sum + usage.cost, 0);
+    const totalTokens = history.reduce((sum, usage) => sum + usage.promptTokens + usage.completionTokens, 0);
+    
+    const modelUsage = history.reduce((acc, usage) => {
+      acc[usage.model] = (acc[usage.model] || 0) + 1;
+      return acc;
+    }, {} as Record<string, number>);
+
+    return {
+      totalCost,
+      totalTokens,
+      modelUsage
+    };
   }
 }
 
-// Export a singleton instance
+// Export singleton instance
 export const paymentService = PaymentService.getInstance();

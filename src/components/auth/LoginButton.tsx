@@ -83,7 +83,10 @@ export function LoginButton() {
   const handleLogin = async (provider: string) => {
     try {
       setIsLoading(true);
-      await auth[provider as keyof typeof auth]();
+      if (provider === 'login') {
+        // For now, use a dummy email/password for demo
+        await auth.login('demo@example.com', 'password123');
+      }
     } catch (error) {
       console.error("Login error:", error);
     } finally {

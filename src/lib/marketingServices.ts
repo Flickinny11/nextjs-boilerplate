@@ -56,12 +56,7 @@ export interface VideoContent {
 
 export type MarketingContent = TextContent | ImageContent | VideoContent;
 
-// Chat and brainstorming interface
-export interface ChatMessage {
-  role: 'user' | 'assistant';
-  content: string;
-}
-
+// Chat and brainstorming interface - using ChatMessage from openRouterService
 export async function getMarketingStrategy(
   messages: ChatMessage[],
   leads: Lead[] = [],
@@ -309,7 +304,7 @@ async function generateVideoContent(
 
     // Determine video duration based on service capabilities
     const service = segmindService.getAvailableServices()[serviceId];
-    const maxDuration = service?.maxDuration || 5;
+    const maxDuration = (service && 'maxDuration' in service) ? service.maxDuration : 5;
     const duration = Math.min(request.videoDuration || 5, maxDuration);
 
     const segmindResponse = await segmindService.generateVideo(serviceId, {

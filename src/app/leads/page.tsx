@@ -11,6 +11,7 @@ import { Loader2, Search, Download, Database, Zap } from "lucide-react";
 import type { Lead, LeadCriteria } from "@/lib/aiServices";
 import { crmService } from "@/lib/crmService";
 import Link from "next/link";
+import { TerritorySelectionMap } from "@/components/maps/TerritorySelectionMap";
 
 import { ProtectedRoute } from "@/components/auth/ProtectedRoute";
 
@@ -31,6 +32,7 @@ function LeadCaptureContent() {
     leadCount: 10,
     enrichData: true,
     importToCRM: false,
+    territories: [],
     additionalInfo: {
       includeFamily: false,
       includeSocial: true,
@@ -177,7 +179,22 @@ function LeadCaptureContent() {
                   value={criteria.location}
                   onChange={(e) => setCriteria({ ...criteria, location: e.target.value })}
                   className="bg-gray-900/50 border-gray-700"
-                  placeholder="e.g., San Francisco, CA"
+                  placeholder="e.g., San Francisco, CA or ZIP code"
+                />
+              </div>
+
+              {/* Territory Selection Map */}
+              <div>
+                <label className="block text-sm font-medium mb-2">Territory Selection</label>
+                <p className="text-gray-400 text-sm mb-4">
+                  Select up to 5 geographic areas where you want to find leads. 
+                  Use the map below to define your territories.
+                </p>
+                <TerritorySelectionMap
+                  zipCode={criteria.location}
+                  onTerritoriesChange={(territories) => 
+                    setCriteria({ ...criteria, territories })
+                  }
                 />
               </div>
 

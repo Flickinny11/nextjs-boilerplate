@@ -14,6 +14,17 @@ export interface LeadCriteria {
     includeSocial?: boolean
     includeInterests?: boolean
   }
+  territories?: Array<{
+    id: string;
+    center: { lat: number; lng: number };
+    radius: number;
+    bounds: {
+      north: number;
+      south: number;
+      east: number;
+      west: number;
+    };
+  }>
   model?: string // OpenRouter model to use
 }
 

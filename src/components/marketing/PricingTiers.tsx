@@ -204,11 +204,11 @@ export function PricingTiers() {
                     <div className="mt-3 pt-3 border-t border-gray-700">
                       <div className="flex justify-between text-sm text-gray-400">
                         <span>Max Members:</span>
-                        <span className="text-white">{tier.maxMembers}</span>
+                        <span className="text-white">{String(tier.maxMembers)}</span>
                       </div>
                       <div className="flex justify-between text-sm text-gray-400 mt-1">
                         <span>Monthly Credits:</span>
-                        <span className="text-white">{tier.credits}</span>
+                        <span className="text-white">{('credits' in tier) ? String(tier.credits) : 'Unlimited'}</span>
                       </div>
                     </div>
                   )}

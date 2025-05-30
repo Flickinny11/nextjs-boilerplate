@@ -434,24 +434,26 @@ export default function CRMSettingsPage() {
                     
                     {integration.enabled && (
                       <div className="space-y-3">
-                        <div>
-                          <label className="block text-xs text-gray-500 mb-1">API Key</label>
-                          <Input
-                            type="password"
-                            value={integration.apiKey}
-                            onChange={(e) => setSettings(prev => ({
-                              ...prev,
-                              integrations: {
-                                ...prev.integrations,
-                                [key]: { ...integration, apiKey: e.target.value }
-                              }
-                            }))}
-                            className="bg-gray-800 border-gray-600"
-                            placeholder="Enter API key..."
-                          />
-                        </div>
+                        {'apiKey' in integration && (
+                          <div>
+                            <label className="block text-xs text-gray-500 mb-1">API Key</label>
+                            <Input
+                              type="password"
+                              value={integration.apiKey}
+                              onChange={(e) => setSettings(prev => ({
+                                ...prev,
+                                integrations: {
+                                  ...prev.integrations,
+                                  [key]: { ...integration, apiKey: e.target.value }
+                                }
+                              }))}
+                              className="bg-gray-800 border-gray-600"
+                              placeholder="Enter API key..."
+                            />
+                          </div>
+                        )}
                         
-                        {integration.baseUrl !== undefined && (
+                        {'baseUrl' in integration && (
                           <div>
                             <label className="block text-xs text-gray-500 mb-1">Base URL</label>
                             <Input
@@ -461,6 +463,24 @@ export default function CRMSettingsPage() {
                                 integrations: {
                                   ...prev.integrations,
                                   [key]: { ...integration, baseUrl: e.target.value }
+                                }
+                              }))}
+                              className="bg-gray-800 border-gray-600"
+                              placeholder="https://..."
+                            />
+                          </div>
+                        )}
+                        
+                        {'webhookUrl' in integration && (
+                          <div>
+                            <label className="block text-xs text-gray-500 mb-1">Webhook URL</label>
+                            <Input
+                              value={integration.webhookUrl}
+                              onChange={(e) => setSettings(prev => ({
+                                ...prev,
+                                integrations: {
+                                  ...prev.integrations,
+                                  [key]: { ...integration, webhookUrl: e.target.value }
                                 }
                               }))}
                               className="bg-gray-800 border-gray-600"

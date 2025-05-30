@@ -88,11 +88,11 @@ export async function captureLeads(criteria: LeadCriteria): Promise<Lead[]> {
 
     // Process and validate the response
     const content = response.choices[0].message.content || "[]";
-    const leads = JSON.parse(content);
+    const leads: Lead[] = JSON.parse(content);
     
     // Enrich leads if requested
     if (criteria.enrichData) {
-      return await Promise.all(leads.map(lead => enrichLeadData(lead, model)));
+      return await Promise.all(leads.map((lead: Lead) => enrichLeadData(lead, model)));
     }
     
     return leads.slice(0, criteria.leadCount);

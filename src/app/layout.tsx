@@ -1,12 +1,9 @@
 import type { Metadata, Viewport } from 'next'
-import { Inter } from 'next/font/google'
 import './globals.css'
 import { AuthProvider } from 'src/context/AuthContext'
 import { cn } from 'src/lib/utils'
 import { Header } from 'src/components/layout/Header'
 import { Footer } from 'src/components/layout/Footer'
-
-const inter = Inter({ subsets: ['latin'] })
 
 export const metadata: Metadata = {
   title: 'CaptureIt LS',
@@ -37,7 +34,7 @@ export default function RootLayout({
     <html lang="en" className="dark h-full antialiased">
       <body
         className={cn(
-          inter.className,
+          'font-sans',
           'h-full bg-gradient-to-b from-background/90 to-background/50 text-foreground',
           'min-h-screen bg-black transition-colors duration-300',
           'bg-[radial-gradient(ellipse_at_top,_var(--tw-gradient-stops))] from-gray-900 via-gray-900 to-black'

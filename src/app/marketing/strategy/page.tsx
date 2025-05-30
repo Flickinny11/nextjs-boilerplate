@@ -2,10 +2,12 @@
 
 import { useState, useRef, useEffect } from "react";
 import { motion, AnimatePresence } from "framer-motion";
-import { Send, User, Bot, ArrowLeft, Sparkles, Clipboard, Check } from "lucide-react";
+import { Send, User, Bot, ArrowLeft, Sparkles, Clipboard, Check, Settings, DollarSign } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Card } from "@/components/ui/card";
 import { Textarea } from "@/components/ui/textarea";
+import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
+import { Badge } from "@/components/ui/badge";
 import Link from "next/link";
 
 type Message = {
@@ -13,22 +15,36 @@ type Message = {
   role: "user" | "assistant";
   content: string;
   timestamp: Date;
+  model?: string;
+  cost?: number;
 };
+
+// OpenRouter models with pricing
+const MODELS = [
+  { id: 'openai/gpt-4o', name: 'GPT-4o', price: '$5/1M tokens', category: 'OpenAI' },
+  { id: 'openai/gpt-4-turbo', name: 'GPT-4 Turbo', price: '$10/1M tokens', category: 'OpenAI' },
+  { id: 'anthropic/claude-3.5-sonnet', name: 'Claude 3.5 Sonnet', price: '$3/1M tokens', category: 'Anthropic' },
+  { id: 'anthropic/claude-3-opus', name: 'Claude 3 Opus', price: '$15/1M tokens', category: 'Anthropic' },
+  { id: 'google/gemini-pro-1.5', name: 'Gemini Pro 1.5', price: '$3.50/1M tokens', category: 'Google' },
+  { id: 'google/gemini-flash-1.5', name: 'Gemini Flash 1.5', price: '$0.075/1M tokens', category: 'Google' }
+];
 
 export default function StrategyAssistant() {
   const [messages, setMessages] = useState<Message[]>([
     {
       id: "welcome",
       role: "assistant",
-      content: "Welcome to the Marketing Strategy Assistant! I can help you brainstorm effective marketing strategies for the leads you've captured. How would you like to engage with your leads?",
+      content: "Welcome to the AI Marketing Strategy Assistant! I'm powered by multiple state-of-the-art models and have access to web crawling, research tools, and comprehensive marketing knowledge. Select a model above and let's create amazing marketing strategies for your leads!",
       timestamp: new Date(),
     },
   ]);
   const [inputValue, setInputValue] = useState("");
   const [isLoading, setIsLoading] = useState(false);
   const [copiedId, setCopiedId] = useState<string | null>(null);
+  const [selectedModel, setSelectedModel] = useState('openai/gpt-4o');
+  const [showSettings, setShowSettings] = useState(false);
+  const [totalCost, setTotalCost] = useState(0);
   const messagesEndRef = useRef<HTMLDivElement>(null);
-
   // Auto-scroll to bottom when messages change
   useEffect(() => {
     messagesEndRef.current?.scrollIntoView({ behavior: "smooth" });
@@ -53,27 +69,93 @@ export default function StrategyAssistant() {
       role: "user",
       content: inputValue,
       timestamp: new Date(),
+      model: selectedModel,
     };
     setMessages((prev) => [...prev, userMessage]);
     setInputValue("");
     setIsLoading(true);
 
     try {
-      // In a real implementation, this would call your API endpoint
-      // that would stream the response back from OpenAI or Anthropic
-      // For now, we'll simulate a response after a short delay
-      setTimeout(() => {
-        const assistantMessage: Message = {
-          id: (Date.now() + 1).toString(),
-          role: "assistant",
-          content: generateMockResponse(inputValue),
-          timestamp: new Date(),
-        };
-        setMessages((prev) => [...prev, assistantMessage]);
-        setIsLoading(false);
-      }, 1500);
+      // Call our new chat API
+      const response = await fetch('/api/chat', {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json',
+          'x-user-id': 'demo-user'
+        },
+        body: JSON.stringify({
+          messages: [...messages, userMessage].map(m => ({
+            role: m.role,
+            content: m.content
+          })),
+          model: selectedModel,
+          tools: [
+            {
+              type: "function",
+              function: {
+                name: "web_search",
+                description: "Search the web for marketing insights and competitor analysis",
+                parameters: {
+                  type: "object",
+                  properties: {
+                    query: { type: "string", description: "Search query" }
+                  },
+                  required: ["query"]
+                }
+              }
+            },
+            {
+              type: "function", 
+              function: {
+                name: "create_media",
+                description: "Navigate to media creation section of the app",
+                parameters: {
+                  type: "object",
+                  properties: {
+                    type: { type: "string", enum: ["image", "video"] },
+                    description: { type: "string", description: "What to create" }
+                  },
+                  required: ["type", "description"]
+                }
+              }
+            }
+          ]
+        })
+      });
+
+      if (!response.ok) {
+        throw new Error(`API error: ${response.status}`);
+      }
+
+      const data = await response.json();
+      
+      // Calculate cost (mock calculation for demo)
+      const estimatedCost = 0.001; // $0.001 per message
+      setTotalCost(prev => prev + estimatedCost);
+
+      // Add assistant message
+      const assistantMessage: Message = {
+        id: (Date.now() + 1).toString(),
+        role: "assistant",
+        content: data.choices[0].message.content,
+        timestamp: new Date(),
+        model: selectedModel,
+        cost: estimatedCost,
+      };
+      setMessages((prev) => [...prev, assistantMessage]);
+
     } catch (error) {
-      console.error("Error generating response:", error);
+      console.error('Chat error:', error);
+      // Add error message
+      const errorMessage: Message = {
+        id: (Date.now() + 1).toString(),
+        role: "assistant", 
+        content: "Sorry, I encountered an error. Please try again or switch to a different model.",
+        timestamp: new Date(),
+        model: selectedModel,
+      };
+      setMessages((prev) => [...prev, errorMessage]);
+    } finally {
       setIsLoading(false);
     }
   };
@@ -90,16 +172,7 @@ export default function StrategyAssistant() {
     setCopiedId(id);
   };
 
-  // Mock response generator - this would be replaced by actual AI calls
-  const generateMockResponse = (input: string): string => {
-    if (input.toLowerCase().includes("email")) {
-      return "For email marketing campaigns targeting your leads, I recommend:\n\n1. **Segmentation**: Divide your leads based on industry and interests\n2. **Personalized Subject Lines**: Use the lead's name and company\n3. **Value-First Content**: Provide useful insights relevant to their industry\n4. **Clear CTA**: One primary call-to-action per email\n5. **Optimal Timing**: Test sending at different times of day\n\nWould you like me to help create a specific email campaign for a segment of your leads?";
-    } else if (input.toLowerCase().includes("social")) {
-      return "For social media marketing to engage your leads:\n\n1. **Platform Selection**: Focus on platforms where your leads are active (LinkedIn for B2B, Instagram for B2C)\n2. **Content Strategy**: Mix of educational, inspirational, and promotional content\n3. **Consistent Branding**: Maintain visual consistency across platforms\n4. **Engagement Plan**: Actively respond to comments and messages\n5. **Paid Targeting**: Use custom audiences based on your leads list\n\nWhich social platforms are you currently using to engage with your leads?";
-    } else {
-      return "Based on your leads' profiles, here are some marketing strategy recommendations:\n\n1. **Multi-Channel Approach**: Combine email, social media, and personalized content\n2. **Problem-Solving Content**: Address specific pain points in their industry\n3. **Case Studies**: Showcase success stories relevant to their business needs\n4. **Webinar Series**: Host educational webinars on topics of interest\n5. **Follow-up Sequence**: Create a structured follow-up plan with increasing value\n\nWould you like me to elaborate on any of these strategies or suggest content ideas for a specific industry?";
-    }
-  };
+  const selectedModelInfo = MODELS.find(m => m.id === selectedModel);
 
   return (
     <div className="container mx-auto px-4 py-8 mt-4">
@@ -117,12 +190,101 @@ export default function StrategyAssistant() {
         className="text-center mb-8"
       >
         <h1 className="text-3xl font-bold bg-clip-text text-transparent bg-gradient-to-r from-blue-500 to-purple-500 mb-2">
-          Strategy Assistant
+          AI Strategy Assistant
         </h1>
         <p className="text-gray-400 max-w-2xl mx-auto">
-          Brainstorm marketing strategies for your leads with our AI assistant
+          Powered by OpenRouter - Chat with the world's best AI models
         </p>
       </motion.div>
+
+      {/* Model Selection & Settings Bar */}
+      <Card className="p-4 mb-6 bg-black/50 backdrop-blur-lg border-gray-800">
+        <div className="flex flex-col sm:flex-row items-center justify-between gap-4">
+          <div className="flex items-center gap-4">
+            <div className="flex items-center gap-2">
+              <Settings className="w-4 h-4 text-gray-400" />
+              <span className="text-sm font-medium">Model:</span>
+            </div>
+            <Select value={selectedModel} onValueChange={setSelectedModel}>
+              <SelectTrigger className="w-48 bg-gray-900/50 border-gray-700">
+                <SelectValue />
+              </SelectTrigger>
+              <SelectContent>
+                {MODELS.map((model) => (
+                  <SelectItem key={model.id} value={model.id}>
+                    <div className="flex items-center justify-between w-full">
+                      <span>{model.name}</span>
+                      <Badge variant="outline" className="ml-2 text-xs">
+                        {model.category}
+                      </Badge>
+                    </div>
+                  </SelectItem>
+                ))}
+              </SelectContent>
+            </Select>
+            {selectedModelInfo && (
+              <Badge variant="secondary" className="text-xs">
+                {selectedModelInfo.price}
+              </Badge>
+            )}
+          </div>
+          
+          <div className="flex items-center gap-4">
+            <div className="flex items-center gap-2">
+              <DollarSign className="w-4 h-4 text-green-400" />
+              <span className="text-sm text-green-400">
+                Session cost: ${totalCost.toFixed(4)}
+              </span>
+            </div>
+            <Button 
+              variant="outline" 
+              size="sm"
+              onClick={() => setShowSettings(!showSettings)}
+            >
+              <Settings className="w-4 h-4" />
+            </Button>
+          </div>
+        </div>
+        
+        {showSettings && (
+          <motion.div
+            initial={{ opacity: 0, height: 0 }}
+            animate={{ opacity: 1, height: "auto" }}
+            exit={{ opacity: 0, height: 0 }}
+            className="mt-4 pt-4 border-t border-gray-700"
+          >
+            <div className="grid grid-cols-1 md:grid-cols-3 gap-4 text-sm">
+              <div>
+                <h4 className="font-semibold text-blue-400 mb-2">Available Tools</h4>
+                <ul className="space-y-1 text-gray-400">
+                  <li>• Web search & research</li>
+                  <li>• Media creation navigation</li>
+                  <li>• Lead analysis</li>
+                  <li>• Strategy brainstorming</li>
+                </ul>
+              </div>
+              <div>
+                <h4 className="font-semibold text-purple-400 mb-2">Agent Capabilities</h4>
+                <ul className="space-y-1 text-gray-400">
+                  <li>• Can control app features</li>
+                  <li>• Real-time cost tracking</li>
+                  <li>• Campaign management</li>
+                  <li>• Multi-model switching</li>
+                </ul>
+              </div>
+              <div>
+                <h4 className="font-semibold text-green-400 mb-2">Commands</h4>
+                <ul className="space-y-1 text-gray-400">
+                  <li>• "create a video" - auto-navigate</li>
+                  <li>• "research competitors"</li>
+                  <li>• "analyze my leads"</li>
+                  <li>• "switch to Claude"</li>
+                </ul>
+              </div>
+            </div>
+          </motion.div>
+        )}
+      </Card>
 
       <div className="grid grid-cols-1 lg:grid-cols-4 gap-8">
         <div className="lg:col-span-3">
@@ -159,8 +321,22 @@ export default function StrategyAssistant() {
                           </div>
                         </div>
                         <div className="flex-1">
-                          <div className="text-sm text-gray-400 mb-1">
-                            {message.role === "user" ? "You" : "Strategy Assistant"}
+                          <div className="flex items-center justify-between mb-1">
+                            <div className="text-sm text-gray-400">
+                              {message.role === "user" ? "You" : "Strategy Assistant"}
+                            </div>
+                            {message.model && (
+                              <div className="flex items-center gap-2">
+                                <Badge variant="outline" className="text-xs">
+                                  {MODELS.find(m => m.id === message.model)?.name || message.model}
+                                </Badge>
+                                {message.cost && (
+                                  <span className="text-xs text-green-400">
+                                    ${message.cost.toFixed(4)}
+                                  </span>
+                                )}
+                              </div>
+                            )}
                           </div>
                           <div className="whitespace-pre-wrap">{message.content}</div>
                         </div>

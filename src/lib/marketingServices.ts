@@ -1,15 +1,6 @@
-import OpenAI from "openai";
-import { Anthropic } from "@anthropic-ai/sdk";
+import { openRouterService, ChatMessage } from "./openRouterService";
+import { segmindService, SegmindServiceId } from "./segmindService";
 import { Lead } from "./aiServices";
-
-// Initialize AI APIs
-const openai = new OpenAI({
-  apiKey: process.env.OPENAI_API_KEY,
-});
-
-const anthropic = new Anthropic({
-  apiKey: process.env.ANTHROPIC_API_KEY,
-});
 
 // Types for marketing content
 export interface MarketingContentRequest {
@@ -25,6 +16,20 @@ export interface MarketingContentRequest {
   format?: string;
   additionalInstructions?: string;
   targetLeads?: Lead[];
+  model?: string; // OpenRouter model to use
+  uploadedImage?: string; // URL of uploaded image
+  campaignId?: string; // Campaign this media is for
+  useCampaignStyles?: boolean; // Use saved campaign styles
+  quantity?: number; // Number of pieces to generate
+  videoDuration?: number; // For video content
+}
+
+export interface CampaignStyles {
+  colors: string[];
+  fonts: string[];
+  logoUrl?: string;
+  brandGuidelines?: string;
+  tone: string;
 }
 
 export interface TextContent {
@@ -37,6 +42,7 @@ export interface ImageContent {
   url: string;
   prompt: string;
   alt?: string;
+  service?: string;
 }
 
 export interface VideoContent {
@@ -44,11 +50,13 @@ export interface VideoContent {
   thumbnailUrl: string;
   title: string;
   description: string;
+  service?: string;
+  duration?: number;
 }
 
 export type MarketingContent = TextContent | ImageContent | VideoContent;
 
-// Chat and brainstorming
+// Chat and brainstorming interface
 export interface ChatMessage {
   role: 'user' | 'assistant';
   content: string;
@@ -56,11 +64,12 @@ export interface ChatMessage {
 
 export async function getMarketingStrategy(
   messages: ChatMessage[],
-  leads: Lead[] = []
+  leads: Lead[] = [],
+  model: string = 'openai/gpt-4o'
 ): Promise<string> {
   try {
     // Prepare the conversation context with lead information if available
-    let systemPrompt = "You are a marketing strategy expert helping create effective campaigns for leads.";
+    let systemPrompt = "You are a marketing strategy expert with comprehensive agent tools helping create effective campaigns for leads.";
     
     if (leads.length > 0) {
       systemPrompt += " Here is information about the target audience:";
@@ -74,15 +83,16 @@ export async function getMarketingStrategy(
       }
     }
 
-    const response = await openai.chat.completions.create({
-      model: "gpt-4-turbo-preview",
-      messages: [
-        { role: "system", content: systemPrompt },
-        ...messages.map(msg => ({ role: msg.role, content: msg.content })),
-      ],
-      temperature: 0.7,
-      stream: false,
-    });
+    const chatMessages: ChatMessage[] = [
+      { role: "system", content: systemPrompt },
+      ...messages
+    ];
+
+    const response = await openRouterService.createChatCompletion(
+      chatMessages,
+      model,
+      { temperature: 0.7 }
+    );
 
     return response.choices[0].message.content || "No strategy could be generated.";
   } catch (error) {
@@ -91,18 +101,21 @@ export async function getMarketingStrategy(
   }
 }
 
-// Generate marketing content
+// AI-powered media generator that selects best service for user request
 export async function generateMarketingContent(
   request: MarketingContentRequest
 ): Promise<MarketingContent> {
   try {
+    // First, analyze the request to determine best approach
+    const mediaAnalysis = await analyzeMediaRequest(request);
+    
     switch (request.contentType) {
       case "text":
         return await generateTextContent(request);
       case "image":
-        return await generateImageContent(request);
+        return await generateImageContent(request, mediaAnalysis.recommendedImageService);
       case "video":
-        return await generateVideoContent(request);
+        return await generateVideoContent(request, mediaAnalysis.recommendedVideoService);
       default:
         throw new Error(`Unsupported content type: ${request.contentType}`);
     }
@@ -112,7 +125,65 @@ export async function generateMarketingContent(
   }
 }
 
-// Generate text content (blog posts, email copy, social media posts)
+// AI analyzes the user request to select best media generation service
+async function analyzeMediaRequest(request: MarketingContentRequest): Promise<{
+  recommendedVideoService: SegmindServiceId;
+  recommendedImageService: SegmindServiceId;
+  enhancedPrompt: string;
+}> {
+  try {
+    const analysisPrompt = `
+    Analyze this media generation request and recommend the best services:
+    
+    Request: ${JSON.stringify(request)}
+    
+    Available video services:
+    - minimax-video-01: Best for marketing videos up to 6 seconds
+    - minimax-video-director: Best for longer videos up to 10 seconds  
+    - kling-video: Newest technology, up to 5 seconds
+    - minimax-tryon: For try-on videos with clothing/fashion, up to 4 seconds
+    
+    Available image services:
+    - flux-pro: High quality, photorealistic images
+    - sdxl: Artistic and general purpose images
+    
+    Consider:
+    - If there's an uploaded image of clothing/fashion → use minimax-tryon
+    - For marketing/promo content → consider minimax-video-01 or kling-video
+    - For longer content → use minimax-video-director
+    - For high quality images → use flux-pro
+    - For artistic images → use sdxl
+    
+    Return JSON with: recommendedVideoService, recommendedImageService, enhancedPrompt
+    `;
+
+    const messages: ChatMessage[] = [
+      {
+        role: "system", 
+        content: "You are an AI media service selector. Analyze requests and recommend the best generation service."
+      },
+      { role: "user", content: analysisPrompt }
+    ];
+
+    const response = await openRouterService.createChatCompletion(
+      messages,
+      request.model || 'openai/gpt-4o',
+      { temperature: 0.3 }
+    );
+
+    return JSON.parse(response.choices[0].message.content || '{}');
+  } catch (error) {
+    console.error("Media analysis error:", error);
+    // Return defaults if analysis fails
+    return {
+      recommendedVideoService: 'kling-video' as SegmindServiceId,
+      recommendedImageService: 'flux-pro' as SegmindServiceId,
+      enhancedPrompt: request.purpose
+    };
+  }
+}
+
+// Generate text content using OpenRouter
 async function generateTextContent(request: MarketingContentRequest): Promise<TextContent> {
   try {
     let prompt = `Create ${request.format || "marketing text"} for ${request.audience.industry || "general"} audience with a ${request.tone} tone.`;
@@ -136,17 +207,19 @@ async function generateTextContent(request: MarketingContentRequest): Promise<Te
       });
     }
     
-    const response = await openai.chat.completions.create({
-      model: "gpt-4-turbo-preview",
-      messages: [
-        { 
-          role: "system", 
-          content: "You are a professional copywriter specializing in marketing content creation." 
-        },
-        { role: "user", content: prompt }
-      ],
-      temperature: 0.7,
-    });
+    const messages: ChatMessage[] = [
+      { 
+        role: "system", 
+        content: "You are a professional copywriter specializing in marketing content creation." 
+      },
+      { role: "user", content: prompt }
+    ];
+
+    const response = await openRouterService.createChatCompletion(
+      messages,
+      request.model || 'openai/gpt-4o',
+      { temperature: 0.7 }
+    );
 
     const content = response.choices[0].message.content || "";
     
@@ -169,29 +242,47 @@ async function generateTextContent(request: MarketingContentRequest): Promise<Te
   }
 }
 
-// Generate image content
-async function generateImageContent(request: MarketingContentRequest): Promise<ImageContent> {
+// Generate image content using Segmind
+async function generateImageContent(
+  request: MarketingContentRequest, 
+  serviceId: SegmindServiceId = 'flux-pro'
+): Promise<ImageContent> {
   try {
-    // Create a detailed prompt for the image generation
-    let imagePrompt = `Create a marketing image for ${request.audience.industry || "general"} industry with a ${request.tone} tone.`;
-    imagePrompt += `\nPurpose: ${request.purpose}`;
+    // Apply campaign styles if requested
+    let enhancedPrompt = request.purpose;
+    if (request.useCampaignStyles && request.campaignId) {
+      const campaignStyles = await getCampaignStyles(request.campaignId);
+      enhancedPrompt += ` Using brand colors: ${campaignStyles.colors.join(", ")}. Brand style: ${campaignStyles.brandGuidelines || campaignStyles.tone}`;
+    }
     
     if (request.additionalInstructions) {
-      imagePrompt += `\nStyle details: ${request.additionalInstructions}`;
+      enhancedPrompt += `. ${request.additionalInstructions}`;
     }
 
-    // Generate an image using DALL-E
-    const response = await openai.images.generate({
-      model: "dall-e-3",
-      prompt: imagePrompt,
-      n: 1,
-      size: "1024x1024",
+    const segmindResponse = await segmindService.generateImage(serviceId, {
+      prompt: enhancedPrompt,
+      samples: request.quantity || 1,
+      width: 1024,
+      height: 1024
     });
 
+    // Handle async response
+    if (segmindResponse.status === 'QUEUED' || segmindResponse.status === 'IN_PROGRESS') {
+      // In a real implementation, you'd poll for completion
+      // For now, return placeholder
+      return {
+        url: "/images/generating-placeholder.jpg",
+        prompt: enhancedPrompt,
+        alt: `Marketing image for ${request.audience.industry || "business"} - ${request.purpose}`,
+        service: serviceId
+      };
+    }
+
     return {
-      url: response.data[0].url || "",
-      prompt: imagePrompt,
-      alt: `Marketing image for ${request.audience.industry || "business"} - ${request.purpose}`
+      url: segmindResponse.output as string || "/images/placeholder.jpg",
+      prompt: enhancedPrompt,
+      alt: `Marketing image for ${request.audience.industry || "business"} - ${request.purpose}`,
+      service: serviceId
     };
   } catch (error) {
     console.error("Image generation error:", error);
@@ -199,45 +290,75 @@ async function generateImageContent(request: MarketingContentRequest): Promise<I
   }
 }
 
-// Generate video content (placeholder implementation)
-async function generateVideoContent(request: MarketingContentRequest): Promise<VideoContent> {
-  // In a real implementation, this would connect to a video generation service
-  // For now, we'll return a placeholder with instructions
-  
+// Generate video content using Segmind services
+async function generateVideoContent(
+  request: MarketingContentRequest,
+  serviceId: SegmindServiceId = 'kling-video'
+): Promise<VideoContent> {
   try {
-    // Generate a script for the video
-    let scriptPrompt = `Create a script for a marketing video for ${request.audience.industry || "general"} industry with a ${request.tone} tone.`;
-    scriptPrompt += `\nPurpose: ${request.purpose}`;
-    scriptPrompt += `\nLength: ${request.length || "30 seconds"}`;
-    
-    if (request.additionalInstructions) {
-      scriptPrompt += `\nAdditional instructions: ${request.additionalInstructions}`;
+    // Apply campaign styles if requested
+    let enhancedPrompt = request.purpose;
+    if (request.useCampaignStyles && request.campaignId) {
+      const campaignStyles = await getCampaignStyles(request.campaignId);
+      enhancedPrompt += ` Using brand colors: ${campaignStyles.colors.join(", ")}. Brand style: ${campaignStyles.brandGuidelines || campaignStyles.tone}`;
     }
     
-    const scriptResponse = await openai.chat.completions.create({
-      model: "gpt-4-turbo-preview",
-      messages: [
-        { 
-          role: "system", 
-          content: "You are a professional video script writer specializing in marketing videos." 
-        },
-        { role: "user", content: scriptPrompt }
-      ],
-      temperature: 0.7,
+    if (request.additionalInstructions) {
+      enhancedPrompt += `. ${request.additionalInstructions}`;
+    }
+
+    // Determine video duration based on service capabilities
+    const service = segmindService.getAvailableServices()[serviceId];
+    const maxDuration = service?.maxDuration || 5;
+    const duration = Math.min(request.videoDuration || 5, maxDuration);
+
+    const segmindResponse = await segmindService.generateVideo(serviceId, {
+      prompt: enhancedPrompt,
+      image_url: request.uploadedImage,
+      duration: duration,
+      aspect_ratio: '16:9'
     });
-    
-    const script = scriptResponse.choices[0].message.content || "";
-    
-    // For demo purposes, return placeholder data
-    // In a real implementation, this would send the script to a video generation service
+
+    // Handle async response
+    if (segmindResponse.status === 'QUEUED' || segmindResponse.status === 'IN_PROGRESS') {
+      // In a real implementation, you'd poll for completion
+      return {
+        url: "/videos/generating-placeholder.mp4",
+        thumbnailUrl: "/images/generating-video-thumbnail.jpg", 
+        title: `${request.audience.industry || "Business"} Marketing Video - ${request.purpose}`,
+        description: `Marketing video with ${request.tone} tone generated using ${service?.name}`,
+        service: serviceId,
+        duration: duration
+      };
+    }
+
     return {
-      url: "/videos/placeholder-marketing-video.mp4",
-      thumbnailUrl: "/images/placeholder-video-thumbnail.jpg",
+      url: segmindResponse.output as string || "/videos/placeholder.mp4",
+      thumbnailUrl: "/images/video-thumbnail.jpg",
       title: `${request.audience.industry || "Business"} Marketing Video - ${request.purpose}`,
-      description: `Marketing video with ${request.tone} tone. Script: ${script.substring(0, 100)}...`
+      description: `Marketing video with ${request.tone} tone generated using ${service?.name}`,
+      service: serviceId,
+      duration: duration
     };
   } catch (error) {
     console.error("Video generation error:", error);
     throw new Error("Failed to generate video content");
   }
+}
+
+// Campaign styles management
+async function getCampaignStyles(campaignId: string): Promise<CampaignStyles> {
+  // In a real implementation, this would fetch from database
+  // For now, return default styles
+  return {
+    colors: ['#007bff', '#6c757d', '#28a745'],
+    fonts: ['Arial', 'Helvetica'],
+    tone: 'professional',
+    brandGuidelines: 'Clean, modern design with focus on readability'
+  };
+}
+
+export async function saveCampaignStyles(campaignId: string, styles: CampaignStyles): Promise<void> {
+  // In a real implementation, this would save to database
+  console.log(`Saving styles for campaign ${campaignId}:`, styles);
 }

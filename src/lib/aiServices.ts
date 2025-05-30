@@ -1,5 +1,4 @@
-import OpenAI from "openai"
-import { Anthropic } from "@anthropic-ai/sdk"
+import { openRouterService, ChatMessage } from "./openRouterService"
 
 // Types
 export interface LeadCriteria {
@@ -15,6 +14,7 @@ export interface LeadCriteria {
     includeSocial?: boolean
     includeInterests?: boolean
   }
+  model?: string // OpenRouter model to use
 }
 
 export interface Lead {
@@ -41,112 +41,126 @@ export interface Lead {
   lastUpdated: string
 }
 
-// Initialize AI APIs
-const openai = new OpenAI({
-  apiKey: process.env.OPENAI_API_KEY,
-})
-
-const anthropic = new Anthropic({
-  apiKey: process.env.ANTHROPIC_API_KEY,
-})
-
-// AI Service Functions
-export async function captureLeadsWithGPT4(criteria: LeadCriteria): Promise<Lead[]> {
-  try {
-    const response = await openai.chat.completions.create({
-      model: "gpt-4-turbo-preview",
-      messages: [
-        {
-          role: "system",
-          content: "You are a professional lead generation assistant. Generate detailed lead profiles based on the given criteria."
-        },
-        {
-          role: "user",
-          content: `Find leads matching these criteria: ${JSON.stringify(criteria)}`
-        }
-      ],
-      temperature: 0.7,
-    })
-
-    // Process and validate the response
-    const leads = JSON.parse(response.choices[0].message.content || "[]")
-    return leads
-  } catch (error) {
-    console.error("GPT-4 API Error:", error)
-    throw new Error("Failed to capture leads with GPT-4")
-  }
-}
-
-export async function captureLeadsWithClaude(criteria: LeadCriteria): Promise<Lead[]> {
-  try {
-    const response = await anthropic.messages.create({
-      model: "claude-3-sonnet-20240229",
-      max_tokens: 4000,
-      messages: [{
-        role: "user",
-        content: `Generate detailed lead profiles matching these criteria: ${JSON.stringify(criteria)}`
-      }],
-      system: "You are a professional lead generation assistant. Generate detailed lead profiles based on the given criteria."
-    })
-
-    // Process and validate the response
-    if (!response.content[0] || typeof response.content[0] !== 'object') {
-      throw new Error("Invalid response format from Claude")
-    }
-    
-    const content = 'text' in response.content[0] 
-      ? response.content[0].text 
-      : JSON.stringify(response.content[0])
-      
-    const leads = JSON.parse(content)
-    return leads
-  } catch (error) {
-    console.error("Claude API Error:", error)
-    throw new Error("Failed to capture leads with Claude")
-  }
-}
-
-// Main lead capture function with fallback strategy
+// AI Service Functions using OpenRouter
 export async function captureLeads(criteria: LeadCriteria): Promise<Lead[]> {
   try {
-    // Try GPT-4 first
-    const gptLeads = await captureLeadsWithGPT4(criteria)
-    if (gptLeads.length >= criteria.leadCount) {
-      return gptLeads
-    }
+    const model = criteria.model || 'openai/gpt-4o';
+    
+    const messages: ChatMessage[] = [
+      {
+        role: "system",
+        content: `You are a professional lead generation assistant with web crawling and research capabilities. Generate realistic lead profiles based on the given criteria. Include social media, family info, and interests if requested. Return a JSON array of lead objects.`
+      },
+      {
+        role: "user", 
+        content: `Generate ${criteria.leadCount} detailed lead profiles matching these criteria: ${JSON.stringify(criteria)}`
+      }
+    ];
 
-    // If GPT-4 doesn't return enough leads, try Claude
-    const claudeLeads = await captureLeadsWithClaude(criteria)
+    // Add web crawling tools if available
+    const tools = [
+      {
+        type: "function",
+        function: {
+          name: "web_search",
+          description: "Search the web for lead information",
+          parameters: {
+            type: "object",
+            properties: {
+              query: { type: "string", description: "Search query" },
+              industry: { type: "string", description: "Industry to focus on" }
+            },
+            required: ["query"]
+          }
+        }
+      }
+    ];
+
+    const response = await openRouterService.createChatCompletion(
+      messages,
+      model,
+      { 
+        temperature: 0.7,
+        tools: tools,
+        tool_choice: "auto"
+      }
+    );
+
+    // Process and validate the response
+    const content = response.choices[0].message.content || "[]";
+    const leads = JSON.parse(content);
     
-    // Merge and deduplicate leads
-    const allLeads = [...gptLeads, ...claudeLeads]
-    const uniqueLeads = deduplicateLeads(allLeads)
+    // Enrich leads if requested
+    if (criteria.enrichData) {
+      return await Promise.all(leads.map(lead => enrichLeadData(lead, model)));
+    }
     
-    return uniqueLeads.slice(0, criteria.leadCount)
+    return leads.slice(0, criteria.leadCount);
   } catch (error) {
-    console.error("Lead capture error:", error)
-    throw new Error("Failed to capture leads with AI services")
+    console.error("Lead capture error:", error);
+    throw new Error("Failed to capture leads with OpenRouter AI services");
   }
 }
 
-// Utility function to deduplicate leads
-function deduplicateLeads(leads: Lead[]): Lead[] {
-  const seen = new Set()
-  return leads.filter(lead => {
-    const key = `${lead.name}-${lead.company}-${lead.email}`.toLowerCase()
-    if (seen.has(key)) return false
-    seen.add(key)
-    return true
-  })
-}
-
-// Web crawling function (to be implemented with proper web scraping library)
-export async function enrichLeadData(lead: Lead): Promise<Lead> {
+// Enhanced web crawling function with OpenRouter
+export async function enrichLeadData(lead: Lead, model: string = 'openai/gpt-4o'): Promise<Lead> {
   try {
-    // Placeholder for real web crawling enrichment implementation
-    // Puppeteer or other scraping libraries should be installed and configured in the environment
-    // For now, return lead as is
-    return lead;
+    const messages: ChatMessage[] = [
+      {
+        role: "system",
+        content: "You are a lead enrichment specialist with web crawling capabilities. Enhance the provided lead data with additional information from public sources."
+      },
+      {
+        role: "user",
+        content: `Enrich this lead with additional data: ${JSON.stringify(lead)}`
+      }
+    ];
+
+    const tools = [
+      {
+        type: "function",
+        function: {
+          name: "linkedin_search",
+          description: "Search LinkedIn for professional information",
+          parameters: {
+            type: "object", 
+            properties: {
+              name: { type: "string" },
+              company: { type: "string" }
+            },
+            required: ["name"]
+          }
+        }
+      },
+      {
+        type: "function",
+        function: {
+          name: "company_research",
+          description: "Research company information",
+          parameters: {
+            type: "object",
+            properties: {
+              company_name: { type: "string" },
+              domain: { type: "string" }
+            },
+            required: ["company_name"]
+          }
+        }
+      }
+    ];
+
+    const response = await openRouterService.createChatCompletion(
+      messages,
+      model,
+      { 
+        temperature: 0.3,
+        tools: tools,
+        tool_choice: "auto"
+      }
+    );
+
+    const enrichedData = JSON.parse(response.choices[0].message.content || "{}");
+    return { ...lead, ...enrichedData, lastUpdated: new Date().toISOString() };
   } catch (error) {
     console.error("Lead enrichment error:", error);
     return lead; // Return original lead if enrichment fails

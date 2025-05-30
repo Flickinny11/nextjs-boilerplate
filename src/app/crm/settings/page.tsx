@@ -16,7 +16,9 @@ import {
   Bell,
   Shield,
   Palette,
-  Globe
+  Globe,
+  Building2,
+  BarChart
 } from 'lucide-react'
 
 export default function CRMSettingsPage() {
@@ -73,6 +75,7 @@ export default function CRMSettingsPage() {
     { id: 'integrations', label: 'Integrations', icon: Globe },
     { id: 'notifications', label: 'Notifications', icon: Bell },
     { id: 'team', label: 'Team', icon: Users },
+    { id: 'organization', label: 'Organization', icon: Building2 },
     { id: 'security', label: 'Security', icon: Shield }
   ]
 
@@ -575,6 +578,123 @@ export default function CRMSettingsPage() {
                       ))}
                     </tbody>
                   </table>
+                </div>
+              </div>
+            )}
+
+            {/* Organization Settings */}
+            {activeTab === 'organization' && (
+              <div className="space-y-6">
+                <div className="flex justify-between items-center">
+                  <h2 className="text-xl font-semibold text-white">Organization Settings</h2>
+                  <Button 
+                    onClick={() => window.open('/organization', '_blank')}
+                    className="bg-blue-600 hover:bg-blue-700"
+                  >
+                    <Building2 className="w-4 h-4 mr-2" />
+                    Manage Organization
+                  </Button>
+                </div>
+
+                <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
+                  {/* Organization Billing */}
+                  <div className="p-6 bg-gray-800/50 rounded-lg border border-gray-700">
+                    <h3 className="text-white font-medium mb-4">Corporate Billing</h3>
+                    <div className="space-y-3">
+                      <div className="flex justify-between">
+                        <span className="text-gray-400">Current Plan:</span>
+                        <span className="text-white">Business Plan</span>
+                      </div>
+                      <div className="flex justify-between">
+                        <span className="text-gray-400">Monthly Credits:</span>
+                        <span className="text-white">25,000</span>
+                      </div>
+                      <div className="flex justify-between">
+                        <span className="text-gray-400">Credits Used:</span>
+                        <span className="text-white">8,500</span>
+                      </div>
+                      <div className="flex justify-between">
+                        <span className="text-gray-400">Team Members:</span>
+                        <span className="text-white">12 / 50</span>
+                      </div>
+                    </div>
+                    <Button className="w-full mt-4 bg-green-600 hover:bg-green-700">
+                      View Billing Details
+                    </Button>
+                  </div>
+
+                  {/* Organization Features */}
+                  <div className="p-6 bg-gray-800/50 rounded-lg border border-gray-700">
+                    <h3 className="text-white font-medium mb-4">Available Features</h3>
+                    <div className="space-y-3">
+                      <div className="flex items-center justify-between">
+                        <span className="text-gray-300">Centralized Billing</span>
+                        <div className="w-3 h-3 bg-green-500 rounded-full"></div>
+                      </div>
+                      <div className="flex items-center justify-between">
+                        <span className="text-gray-300">Team Management</span>
+                        <div className="w-3 h-3 bg-green-500 rounded-full"></div>
+                      </div>
+                      <div className="flex items-center justify-between">
+                        <span className="text-gray-300">Usage Analytics</span>
+                        <div className="w-3 h-3 bg-green-500 rounded-full"></div>
+                      </div>
+                      <div className="flex items-center justify-between">
+                        <span className="text-gray-300">Role-based Access</span>
+                        <div className="w-3 h-3 bg-green-500 rounded-full"></div>
+                      </div>
+                      <div className="flex items-center justify-between">
+                        <span className="text-gray-300">Priority Support</span>
+                        <div className="w-3 h-3 bg-green-500 rounded-full"></div>
+                      </div>
+                    </div>
+                  </div>
+                </div>
+
+                {/* Quick Actions */}
+                <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
+                  <Button variant="outline" className="border-gray-600 flex items-center gap-2">
+                    <Users className="w-4 h-4" />
+                    Invite Team Members
+                  </Button>
+                  <Button variant="outline" className="border-gray-600 flex items-center gap-2">
+                    <Settings className="w-4 h-4" />
+                    Configure Roles
+                  </Button>
+                  <Button variant="outline" className="border-gray-600 flex items-center gap-2">
+                    <BarChart className="w-4 h-4" />
+                    View Usage Reports
+                  </Button>
+                </div>
+
+                {/* Organization Info */}
+                <div className="p-6 bg-gray-800/50 rounded-lg border border-gray-700">
+                  <h3 className="text-white font-medium mb-4">Organization Details</h3>
+                  <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                    <div>
+                      <label className="block text-sm font-medium text-gray-400 mb-2">
+                        Organization Name
+                      </label>
+                      <Input
+                        value="Acme Corporation"
+                        className="bg-gray-800 border-gray-600"
+                        readOnly
+                      />
+                    </div>
+                    <div>
+                      <label className="block text-sm font-medium text-gray-400 mb-2">
+                        Organization Domain
+                      </label>
+                      <Input
+                        value="acme.com"
+                        className="bg-gray-800 border-gray-600"
+                        readOnly
+                      />
+                    </div>
+                  </div>
+                  <p className="text-gray-400 text-sm mt-4">
+                    To modify organization settings, use the dedicated Organization Management dashboard.
+                  </p>
                 </div>
               </div>
             )}

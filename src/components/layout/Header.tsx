@@ -19,7 +19,8 @@ import {
   ShieldCheck,
   Zap,
   Users,
-  Target
+  Target,
+  Building2
 } from "lucide-react";
 
 export function Header() {
@@ -34,6 +35,7 @@ export function Header() {
       { href: "/dashboard", label: "Dashboard", icon: BarChart },
       { href: "/leads", label: "Leads", icon: Users },
       { href: "/crm", label: "CRM", icon: Target },
+      { href: "/organization", label: "Organization", icon: Building2 },
       { href: "/marketing", label: "Marketing", icon: Zap },
       { href: "/settings", label: "Settings", icon: Settings },
       { href: "/api", label: "API", icon: ServerCog },

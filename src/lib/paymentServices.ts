@@ -1,4 +1,5 @@
 import { openRouterService } from "./openRouterService";
+import { organizationService } from "./organizationService";
 
 interface PaymentPlan {
   id: string;
@@ -154,7 +155,8 @@ export class PaymentService {
     userId: string, 
     model: string, 
     promptTokens: number, 
-    completionTokens: number
+    completionTokens: number,
+    organizationId?: string
   ): Promise<void> {
     try {
       // Calculate real cost using OpenRouter pricing
@@ -163,8 +165,13 @@ export class PaymentService {
       // Convert cost to credits (e.g., $0.01 = 1 credit)
       const creditsUsed = Math.ceil(cost * 100);
 
-      // Deduct from user's credits
-      await this.deductCredits(userId, creditsUsed);
+      // If organization ID provided, use organization billing
+      if (organizationId) {
+        await organizationService.trackOrganizationUsage(organizationId, userId, creditsUsed, cost);
+      } else {
+        // Deduct from user's individual credits
+        await this.deductCredits(userId, creditsUsed);
+      }
 
       // Track usage history
       const usage: APIUsage = {

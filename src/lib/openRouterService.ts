@@ -40,53 +40,136 @@ export interface OpenRouterResponse {
 
 // Available models with pricing (as of latest OpenRouter pricing)
 export const OPENROUTER_MODELS: Record<string, OpenRouterModel> = {
+  // Core Premium Models
   'openai/gpt-4o': {
     id: 'openai/gpt-4o',
     name: 'GPT-4o',
-    description: 'OpenAI\'s latest multimodal model',
+    description: 'Advanced reasoning and generation',
     pricing: { prompt: 5.00, completion: 15.00 },
     context_length: 128000,
     top_provider: { max_completion_tokens: 4096 }
   },
-  'openai/gpt-4-turbo': {
-    id: 'openai/gpt-4-turbo',
-    name: 'GPT-4 Turbo',
-    description: 'OpenAI\'s most capable model',
-    pricing: { prompt: 10.00, completion: 30.00 },
+  'openai/gpt-4.1': {
+    id: 'openai/gpt-4.1',
+    name: 'GPT-4.1',
+    description: 'OpenAI\'s latest enhanced model',
+    pricing: { prompt: 12.00, completion: 36.00 },
     context_length: 128000,
     top_provider: { max_completion_tokens: 4096 }
   },
-  'anthropic/claude-3.5-sonnet': {
-    id: 'anthropic/claude-3.5-sonnet',
-    name: 'Claude 3.5 Sonnet',
-    description: 'Anthropic\'s most balanced model',
+  'anthropic/claude-4-sonnet': {
+    id: 'anthropic/claude-4-sonnet',
+    name: 'Claude 4 Sonnet',
+    description: 'Superior analysis and writing',
     pricing: { prompt: 3.00, completion: 15.00 },
     context_length: 200000,
     top_provider: { max_completion_tokens: 8192 }
   },
-  'anthropic/claude-3-opus': {
-    id: 'anthropic/claude-3-opus',
-    name: 'Claude 3 Opus',
-    description: 'Anthropic\'s most powerful model',
+  'anthropic/claude-4-opus': {
+    id: 'anthropic/claude-4-opus',
+    name: 'Claude Opus 4',
+    description: 'Superior analysis and writing, complex instruction understanding',
     pricing: { prompt: 15.00, completion: 75.00 },
     context_length: 200000,
     top_provider: { max_completion_tokens: 4096 }
   },
-  'google/gemini-pro-1.5': {
-    id: 'google/gemini-pro-1.5',
-    name: 'Gemini Pro 1.5',
-    description: 'Google\'s advanced model',
+  'google/gemini-pro-2.5': {
+    id: 'google/gemini-pro-2.5',
+    name: 'Gemini Pro 2.5',
+    description: 'Large context processing',
     pricing: { prompt: 3.50, completion: 10.50 },
     context_length: 2000000,
     top_provider: { max_completion_tokens: 8192 }
   },
-  'google/gemini-flash-1.5': {
-    id: 'google/gemini-flash-1.5',
-    name: 'Gemini Flash 1.5',
-    description: 'Google\'s fast and efficient model',
+  'google/gemini-flash-2.5': {
+    id: 'google/gemini-flash-2.5',
+    name: 'Gemini Flash 2.5',
+    description: 'Fast, efficient responses',
     pricing: { prompt: 0.075, completion: 0.30 },
     context_length: 1000000,
     top_provider: { max_completion_tokens: 8192 }
+  },
+  // Meta Llama Models
+  'meta-llama/llama-3.2-90b-instruct': {
+    id: 'meta-llama/llama-3.2-90b-instruct',
+    name: 'Llama 3.2 90B Instruct',
+    description: 'Large open-source instruction model',
+    pricing: { prompt: 0.90, completion: 0.90 },
+    context_length: 131072,
+    top_provider: { max_completion_tokens: 4096 }
+  },
+  'meta-llama/llama-3.1-405b-instruct': {
+    id: 'meta-llama/llama-3.1-405b-instruct',
+    name: 'Llama 3.1 405B Instruct',
+    description: 'Largest open-source instruction model',
+    pricing: { prompt: 5.32, completion: 16.00 },
+    context_length: 131072,
+    top_provider: { max_completion_tokens: 4096 }
+  },
+  // 8 Additional Latest Models (rotating based on release dates)
+  'qwen/qwen-2.5-72b-instruct': {
+    id: 'qwen/qwen-2.5-72b-instruct',
+    name: 'Qwen 2.5 72B Instruct',
+    description: 'Latest Qwen instruction model',
+    pricing: { prompt: 0.56, completion: 2.24 },
+    context_length: 131072,
+    top_provider: { max_completion_tokens: 8192 }
+  },
+  'mistralai/mistral-large-2411': {
+    id: 'mistralai/mistral-large-2411',
+    name: 'Mistral Large 2411',
+    description: 'Latest Mistral large model',
+    pricing: { prompt: 2.00, completion: 6.00 },
+    context_length: 128000,
+    top_provider: { max_completion_tokens: 4096 }
+  },
+  'deepseek/deepseek-chat': {
+    id: 'deepseek/deepseek-chat',
+    name: 'DeepSeek Chat',
+    description: 'Advanced reasoning and coding model',
+    pricing: { prompt: 0.14, completion: 0.28 },
+    context_length: 64000,
+    top_provider: { max_completion_tokens: 4096 }
+  },
+  'x-ai/grok-2-1212': {
+    id: 'x-ai/grok-2-1212',
+    name: 'Grok 2 1212',
+    description: 'Latest xAI conversational model',
+    pricing: { prompt: 2.00, completion: 10.00 },
+    context_length: 131072,
+    top_provider: { max_completion_tokens: 4096 }
+  },
+  'cohere/command-r-plus-08-2024': {
+    id: 'cohere/command-r-plus-08-2024',
+    name: 'Command R+ 08-2024',
+    description: 'Latest Cohere command model',
+    pricing: { prompt: 2.50, completion: 10.00 },
+    context_length: 128000,
+    top_provider: { max_completion_tokens: 4096 }
+  },
+  'databricks/dbrx-instruct': {
+    id: 'databricks/dbrx-instruct',
+    name: 'DBRX Instruct',
+    description: 'Databricks instruction model',
+    pricing: { prompt: 0.75, completion: 2.25 },
+    context_length: 32768,
+    top_provider: { max_completion_tokens: 4096 }
+  },
+  'nous-hermes-2-mixtral-8x7b-dpo': {
+    id: 'nous-hermes-2-mixtral-8x7b-dpo',
+    name: 'Nous Hermes 2 Mixtral 8x7B DPO',
+    description: 'Fine-tuned Mixtral model',
+    pricing: { prompt: 0.27, completion: 0.27 },
+    context_length: 32768,
+    top_provider: { max_completion_tokens: 4096 }
+  },
+  'perplexity/llama-3.1-sonar-huge-128k-online': {
+    id: 'perplexity/llama-3.1-sonar-huge-128k-online',
+    name: 'Llama 3.1 Sonar Huge 128K Online',
+    description: 'Perplexity online search-enhanced model',
+    pricing: { prompt: 5.00, completion: 5.00 },
+    context_length: 127072,
+    top_provider: { max_completion_tokens: 4096 }
   }
 };
 

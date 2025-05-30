@@ -31,13 +31,23 @@ CaptureIT LS (Lead Solutions) is a revolutionary AI-powered sales and marketing 
 ### 🤖 2. Advanced AI Chat Interface
 
 #### **Multi-Model AI Access**
-- **OpenRouter Integration**: Unified access to 6 premium AI models through single API
+- **OpenRouter Integration**: Unified access to 16 premium AI models through single API
   - OpenAI GPT-4o (Advanced reasoning and generation)
-  - Anthropic Claude 3.5 Sonnet (Superior analysis and writing)
-  - Google Gemini Pro 1.5 (Large context processing)
-  - Google Gemini Flash 1.5 (Fast, efficient responses)
-  - Meta Llama models (Open-source alternatives)
-  - Specialized models for specific use cases
+  - OpenAI GPT-4.1 (Latest enhanced model)
+  - Anthropic Claude 4 Sonnet (Superior analysis and writing)
+  - Anthropic Opus 4 (Superior analysis and writing, complex instruction understanding)
+  - Google Gemini Pro 2.5 (Large context processing)
+  - Google Gemini Flash 2.5 (Fast, efficient responses)
+  - Meta Llama 3.2 90B Instruct (Large open-source instruction model)
+  - Meta Llama 3.1 405B Instruct (Largest open-source instruction model)
+  - Qwen 2.5 72B Instruct (Latest Qwen instruction model)
+  - Mistral Large 2411 (Latest Mistral large model)
+  - DeepSeek Chat (Advanced reasoning and coding model)
+  - Grok 2 1212 (Latest xAI conversational model)
+  - Command R+ 08-2024 (Latest Cohere command model)
+  - DBRX Instruct (Databricks instruction model)
+  - Nous Hermes 2 Mixtral 8x7B DPO (Fine-tuned Mixtral model)
+  - Llama 3.1 Sonar Huge 128K Online (Perplexity online search-enhanced model)
 
 #### **Intelligent Cost Management**
 - **Real-time Pricing**: Live cost calculation per message with token usage
@@ -238,7 +248,7 @@ CaptureIT LS (Lead Solutions) is a revolutionary AI-powered sales and marketing 
 ## 🌟 Competitive Advantages
 
 ### 1. **Unified AI Platform**
-- **Industry First**: Only platform offering 6 premium AI models in single interface
+- **Industry First**: Only platform offering 16 premium AI models in single interface
 - **Cost Transparency**: Real-time pricing with no hidden markups
 - **Intelligent Selection**: AI automatically chooses optimal services for each task
 

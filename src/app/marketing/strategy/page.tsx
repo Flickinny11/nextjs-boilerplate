@@ -21,12 +21,25 @@ type Message = {
 
 // OpenRouter models with pricing
 const MODELS = [
+  // Core Premium Models
   { id: 'openai/gpt-4o', name: 'GPT-4o', price: '$5/1M tokens', category: 'OpenAI' },
-  { id: 'openai/gpt-4-turbo', name: 'GPT-4 Turbo', price: '$10/1M tokens', category: 'OpenAI' },
-  { id: 'anthropic/claude-3.5-sonnet', name: 'Claude 3.5 Sonnet', price: '$3/1M tokens', category: 'Anthropic' },
-  { id: 'anthropic/claude-3-opus', name: 'Claude 3 Opus', price: '$15/1M tokens', category: 'Anthropic' },
-  { id: 'google/gemini-pro-1.5', name: 'Gemini Pro 1.5', price: '$3.50/1M tokens', category: 'Google' },
-  { id: 'google/gemini-flash-1.5', name: 'Gemini Flash 1.5', price: '$0.075/1M tokens', category: 'Google' }
+  { id: 'openai/gpt-4.1', name: 'GPT-4.1', price: '$12/1M tokens', category: 'OpenAI' },
+  { id: 'anthropic/claude-4-sonnet', name: 'Claude 4 Sonnet', price: '$3/1M tokens', category: 'Anthropic' },
+  { id: 'anthropic/claude-4-opus', name: 'Claude Opus 4', price: '$15/1M tokens', category: 'Anthropic' },
+  { id: 'google/gemini-pro-2.5', name: 'Gemini Pro 2.5', price: '$3.50/1M tokens', category: 'Google' },
+  { id: 'google/gemini-flash-2.5', name: 'Gemini Flash 2.5', price: '$0.075/1M tokens', category: 'Google' },
+  // Meta Llama Models
+  { id: 'meta-llama/llama-3.2-90b-instruct', name: 'Llama 3.2 90B', price: '$0.90/1M tokens', category: 'Meta' },
+  { id: 'meta-llama/llama-3.1-405b-instruct', name: 'Llama 3.1 405B', price: '$5.32/1M tokens', category: 'Meta' },
+  // Latest Additional Models
+  { id: 'qwen/qwen-2.5-72b-instruct', name: 'Qwen 2.5 72B', price: '$0.56/1M tokens', category: 'Qwen' },
+  { id: 'mistralai/mistral-large-2411', name: 'Mistral Large 2411', price: '$2/1M tokens', category: 'Mistral' },
+  { id: 'deepseek/deepseek-chat', name: 'DeepSeek Chat', price: '$0.14/1M tokens', category: 'DeepSeek' },
+  { id: 'x-ai/grok-2-1212', name: 'Grok 2 1212', price: '$2/1M tokens', category: 'xAI' },
+  { id: 'cohere/command-r-plus-08-2024', name: 'Command R+ 08-2024', price: '$2.50/1M tokens', category: 'Cohere' },
+  { id: 'databricks/dbrx-instruct', name: 'DBRX Instruct', price: '$0.75/1M tokens', category: 'Databricks' },
+  { id: 'nous-hermes-2-mixtral-8x7b-dpo', name: 'Nous Hermes 2 Mixtral', price: '$0.27/1M tokens', category: 'Nous' },
+  { id: 'perplexity/llama-3.1-sonar-huge-128k-online', name: 'Sonar Huge Online', price: '$5/1M tokens', category: 'Perplexity' }
 ];
 
 export default function StrategyAssistant() {

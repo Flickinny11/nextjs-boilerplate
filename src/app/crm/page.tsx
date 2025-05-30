@@ -17,26 +17,36 @@ import {
 } from 'lucide-react'
 import Link from 'next/link'
 import { crmService } from '@/lib/crmService'
+import { AnalyticsService, initializeDemoData } from '@/lib/firestoreService'
+import { useAuth } from '@/context/AuthContext'
 import type { CRMDashboardMetrics } from '@/lib/crmTypes'
 
 export default function CRMDashboard() {
+  const { user } = useAuth()
   const [metrics, setMetrics] = useState<CRMDashboardMetrics | null>(null)
   const [loading, setLoading] = useState(true)
 
   useEffect(() => {
-    loadDashboardData()
-  }, [])
+    if (user?.uid) {
+      loadDashboardData()
+    }
+  }, [user?.uid])
 
   const loadDashboardData = async () => {
+    if (!user?.uid) return
+    
     try {
       setLoading(true)
-      const response = await crmService.getDashboardMetrics()
-      if (response.success && response.data) {
-        setMetrics(response.data)
-      }
+      
+      // Initialize demo data for new users
+      await initializeDemoData(user.uid)
+      
+      // Load real metrics from Firestore
+      const dashboardMetrics = await AnalyticsService.getDashboardMetrics(user.uid)
+      setMetrics(dashboardMetrics)
     } catch (error) {
       console.error('Failed to load dashboard data:', error)
-      // Fallback to mock data if API fails
+      // Fallback to mock data if Firestore fails
       const mockMetrics: CRMDashboardMetrics = {
         contacts: {
           total: 1250,

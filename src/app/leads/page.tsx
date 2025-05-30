@@ -9,6 +9,7 @@ import { Select, SelectTrigger, SelectValue, SelectContent, SelectItem } from "@
 import { Alert, AlertDescription } from "@/components/ui/alert";
 import { Loader2, Search, Download, Database, Zap } from "lucide-react";
 import type { Lead, LeadCriteria } from "@/lib/aiServices";
+import { crmService } from "@/lib/crmService";
 import Link from "next/link";
 
 import { ProtectedRoute } from "@/components/auth/ProtectedRoute";
@@ -92,6 +93,33 @@ function LeadCaptureContent() {
     a.download = "leads.csv";
     a.click();
     window.URL.revokeObjectURL(url);
+  };
+
+  const handleImportToCRM = async () => {
+    try {
+      setLoading(true);
+      
+      // Convert leads to CRM contact format
+      const contactPromises = leads.map(lead => 
+        crmService.syncLeadToCRM(lead)
+      );
+      
+      const results = await Promise.all(contactPromises);
+      const successCount = results.filter(r => r.success).length;
+      
+      if (successCount > 0) {
+        setError(null);
+        // Show success message and redirect to CRM
+        alert(`Successfully imported ${successCount} leads to CRM!`);
+        window.location.href = '/crm/contacts';
+      } else {
+        setError("Failed to import leads to CRM");
+      }
+    } catch (err) {
+      setError(err instanceof Error ? err.message : "Failed to import to CRM");
+    } finally {
+      setLoading(false);
+    }
   };
 
   return (
@@ -264,13 +292,19 @@ function LeadCaptureContent() {
                       </Button>
                     </Link>
                   )}
-                  {criteria.importToCRM && (
+                  {leads.length > 0 && (
                     <Button
+                      onClick={handleImportToCRM}
                       variant="outline"
                       className="bg-gray-900/50 border-gray-700"
+                      disabled={loading}
                     >
-                      <Database className="w-4 h-4 mr-2" />
-                      View in CRM
+                      {loading ? (
+                        <Loader2 className="w-4 h-4 mr-2 animate-spin" />
+                      ) : (
+                        <Database className="w-4 h-4 mr-2" />
+                      )}
+                      Import to CRM
                     </Button>
                   )}
                 </div>

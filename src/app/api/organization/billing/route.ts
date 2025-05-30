@@ -2,6 +2,8 @@ import { NextResponse } from "next/server";
 import type { NextRequest } from "next/server";
 import { organizationService } from "@/lib/organizationService";
 
+export const dynamic = 'force-dynamic'
+
 // GET /api/organization/billing?orgId=xxx - Get organization billing info and usage
 export async function GET(request: NextRequest) {
   try {

@@ -1,6 +1,6 @@
 "use client"
 
-import { useState, useEffect } from 'react'
+import { useState, useEffect, Suspense } from 'react'
 import { useSearchParams, useRouter } from 'next/navigation'
 import { motion } from 'framer-motion'
 import { Card } from '@/components/ui/card'
@@ -14,7 +14,7 @@ import {
   ArrowRight
 } from 'lucide-react'
 
-export default function AcceptInvitePage() {
+function AcceptInviteContent() {
   const searchParams = useSearchParams()
   const router = useRouter()
   const [loading, setLoading] = useState(false)
@@ -357,5 +357,17 @@ export default function AcceptInvitePage() {
         </Card>
       </motion.div>
     </div>
+  )
+}
+
+export default function AcceptInvitePage() {
+  return (
+    <Suspense fallback={
+      <div className="min-h-screen flex items-center justify-center p-4">
+        <div className="animate-spin rounded-full h-16 w-16 border-b-2 border-blue-500"></div>
+      </div>
+    }>
+      <AcceptInviteContent />
+    </Suspense>
   )
 }

@@ -30,7 +30,13 @@ export default function CRMDashboard() {
   const loadDashboardData = async () => {
     try {
       setLoading(true)
-      // For now, we'll use mock data since the analytics endpoint isn't implemented yet
+      const response = await crmService.getDashboardMetrics()
+      if (response.success && response.data) {
+        setMetrics(response.data)
+      }
+    } catch (error) {
+      console.error('Failed to load dashboard data:', error)
+      // Fallback to mock data if API fails
       const mockMetrics: CRMDashboardMetrics = {
         contacts: {
           total: 1250,
@@ -60,8 +66,6 @@ export default function CRMDashboard() {
         }
       }
       setMetrics(mockMetrics)
-    } catch (error) {
-      console.error('Failed to load dashboard data:', error)
     } finally {
       setLoading(false)
     }
@@ -132,8 +136,14 @@ export default function CRMDashboard() {
               Deals
             </Button>
           </Link>
-          <Link href="/crm/activities">
+          <Link href="/crm/pipeline">
             <Button className="bg-purple-600 hover:bg-purple-700">
+              <TrendingUp className="w-4 h-4 mr-2" />
+              Pipeline
+            </Button>
+          </Link>
+          <Link href="/crm/activities">
+            <Button className="bg-orange-600 hover:bg-orange-700">
               <Calendar className="w-4 h-4 mr-2" />
               Activities
             </Button>

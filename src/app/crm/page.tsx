@@ -148,6 +148,18 @@ export default function CRMDashboard() {
               Activities
             </Button>
           </Link>
+          <Link href="/crm/reports">
+            <Button className="bg-indigo-600 hover:bg-indigo-700">
+              <TrendingUp className="w-4 h-4 mr-2" />
+              Reports
+            </Button>
+          </Link>
+          <Link href="/crm/settings">
+            <Button variant="outline" className="border-gray-600">
+              <Users className="w-4 h-4 mr-2" />
+              Settings
+            </Button>
+          </Link>
         </div>
       </motion.div>
 

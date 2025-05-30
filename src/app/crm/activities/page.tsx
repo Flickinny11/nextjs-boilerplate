@@ -87,7 +87,7 @@ const MOCK_ACTIVITIES: CRMActivity[] = [
     description: 'Create customized contract for enterprise deal',
     dealId: 'deal_3',
     scheduledAt: new Date('2024-01-23T09:00:00'),
-    status: 'overdue',
+    status: 'scheduled',
     priority: 'high',
     assignedTo: 'current-user',
     participants: [],

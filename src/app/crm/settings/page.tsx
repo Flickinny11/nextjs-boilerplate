@@ -432,13 +432,13 @@ export default function CRMSettingsPage() {
                       </div>
                     </div>
                     
-                    {integration.enabled && (
+                    {integration.enabled && 'apiKey' in integration && (
                       <div className="space-y-3">
                         <div>
                           <label className="block text-xs text-gray-500 mb-1">API Key</label>
                           <Input
                             type="password"
-                            value={integration.apiKey}
+                            value={integration.apiKey || ''}
                             onChange={(e) => setSettings(prev => ({
                               ...prev,
                               integrations: {
@@ -451,11 +451,11 @@ export default function CRMSettingsPage() {
                           />
                         </div>
                         
-                        {integration.baseUrl !== undefined && (
+                        {'baseUrl' in integration && integration.baseUrl !== undefined && (
                           <div>
                             <label className="block text-xs text-gray-500 mb-1">Base URL</label>
                             <Input
-                              value={integration.baseUrl}
+                              value={'baseUrl' in integration ? integration.baseUrl : ''}
                               onChange={(e) => setSettings(prev => ({
                                 ...prev,
                                 integrations: {

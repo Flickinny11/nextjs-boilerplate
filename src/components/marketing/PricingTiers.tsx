@@ -10,42 +10,61 @@ import { useState } from "react";
 
 const individualTiers = [
   {
-    name: "Starter",
-    price: "$0",
-    description: "Perfect for trying out CaptureIt LS",
+    name: "Entry",
+    price: "$5",
+    description: "Perfect for individuals getting started",
     features: [
-      "100 leads per month",
+      "500 leads per month",
       "Basic lead filtering",
       "Email support",
-      "Basic analytics"
+      "Basic analytics",
+      "CRM access",
+      "Territory mapping"
     ]
   },
   {
     name: "Professional",
-    price: "$49",
+    price: "$40", 
     description: "For growing businesses and teams",
     features: [
-      "1,000 leads per month",
+      "5,000 leads per month",
       "Advanced lead filtering",
       "Priority support",
       "Advanced analytics",
       "Custom exports",
-      "Team collaboration"
+      "Team collaboration",
+      "Email integration",
+      "Video conferencing"
     ],
     popular: true
   },
   {
-    name: "Enterprise",
-    price: "Custom",
-    description: "For large organizations with custom needs",
+    name: "Business",
+    price: "$60",
+    description: "For established businesses with advanced needs",
+    features: [
+      "15,000 leads per month",
+      "All Professional features",
+      "Canva integration",
+      "Adobe Express access",
+      "Advanced AI workflows",
+      "Custom integrations",
+      "API access",
+      "Dedicated support"
+    ]
+  },
+  {
+    name: "Premium",
+    price: "$80",
+    description: "For enterprises requiring maximum capabilities",
     features: [
       "Unlimited leads",
-      "Custom integrations",
+      "All Business features",
+      "CaptureIT Calls & Messages",
+      "Advanced video conferencing",
+      "Custom AI models",
+      "White-label options",
       "24/7 dedicated support",
-      "Advanced analytics",
-      "Custom exports",
-      "Team collaboration",
-      "API access",
       "Custom features"
     ]
   }
@@ -54,28 +73,28 @@ const individualTiers = [
 const organizationTiers = [
   {
     name: "Team",
-    price: "$199",
+    price: "$25",
     description: "Perfect for small teams getting started",
-    maxMembers: "10" as const,
-    credits: "5,000",
+    maxMembers: "5" as const,
+    credits: "2,500",
     features: [
-      "Up to 10 team members",
-      "5,000 credits per month",
+      "Up to 5 team members",
+      "2,500 credits per month",
       "Basic team management",
-      "Usage analytics",
+      "Usage analytics", 
       "Email support",
       "Shared credit pool"
     ]
   },
   {
     name: "Business",
-    price: "$499",
+    price: "$200",
     description: "For growing organizations with larger teams",
-    maxMembers: "50" as const,
-    credits: "25,000",
+    maxMembers: "25" as const,
+    credits: "15,000",
     features: [
-      "Up to 50 team members",
-      "25,000 credits per month",
+      "Up to 25 team members",
+      "15,000 credits per month",
       "Advanced team management",
       "Role-based permissions",
       "Usage analytics",
@@ -87,7 +106,7 @@ const organizationTiers = [
   },
   {
     name: "Enterprise",
-    price: "$1,999",
+    price: "$800",
     description: "For large organizations with advanced needs",
     maxMembers: "Unlimited" as const,
     credits: "100,000",

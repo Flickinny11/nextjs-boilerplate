@@ -11,7 +11,10 @@ import {
   XCircle,
   Clock,
   UserPlus,
-  ArrowRight
+  ArrowRight,
+  Shield,
+  Crown,
+  Users
 } from 'lucide-react'
 
 export default function AcceptInvitePage() {
@@ -55,8 +58,13 @@ export default function AcceptInvitePage() {
       const mockOrganization = {
         id: 'org_123',
         name: 'Acme Corporation',
-        plan: { name: 'Business', price: 499 },
-        domain: 'acme.com'
+        plan: { 
+          name: 'Enterprise', 
+          price: 1999,
+          features: ['Manager Console', 'Advanced Analytics', 'Team Collaboration Tools']
+        },
+        domain: 'acme.com',
+        managerConsoleEnabled: true
       }
       
       // Check if invitation is expired
@@ -188,8 +196,50 @@ export default function AcceptInvitePage() {
                 <li>• Team collaboration tools and workflows</li>
                 <li>• Organization-wide analytics and reporting</li>
                 <li>• Access to premium features and integrations</li>
+                {organization?.managerConsoleEnabled && (
+                  <li>• Manager-assisted collaboration and support</li>
+                )}
               </ul>
             </div>
+
+            {/* Enterprise Manager Console Highlight */}
+            {organization?.plan.name === 'Enterprise' && organization?.managerConsoleEnabled && (
+              <div className="bg-gradient-to-r from-purple-900/20 to-blue-900/20 border border-purple-500/30 rounded-lg p-6 mb-6">
+                <div className="flex items-center justify-center mb-4">
+                  <div className="w-12 h-12 bg-gradient-to-r from-purple-500 to-blue-500 rounded-full flex items-center justify-center mr-3">
+                    <Shield className="w-6 h-6 text-white" />
+                  </div>
+                  <div>
+                    <h3 className="text-purple-400 font-semibold text-lg">🚀 Enterprise Exclusive</h3>
+                    <p className="text-purple-300 text-sm">Manager Console Enabled</p>
+                  </div>
+                </div>
+                <div className="text-center">
+                  <p className="text-gray-300 text-sm mb-4">
+                    As part of this Enterprise organization, you'll benefit from our revolutionary Manager Console - 
+                    where your manager gets smart alerts and suggestions to help you succeed.
+                  </p>
+                  <div className="grid grid-cols-1 md:grid-cols-2 gap-3 text-xs text-purple-300">
+                    <div className="flex items-center gap-2">
+                      <Crown className="w-3 h-3" />
+                      <span>Smart collaboration opportunities</span>
+                    </div>
+                    <div className="flex items-center gap-2">
+                      <Users className="w-3 h-3" />
+                      <span>Team performance insights</span>
+                    </div>
+                    <div className="flex items-center gap-2">
+                      <Shield className="w-3 h-3" />
+                      <span>Manager assistance tools</span>
+                    </div>
+                    <div className="flex items-center gap-2">
+                      <Building2 className="w-3 h-3" />
+                      <span>Advanced team analytics</span>
+                    </div>
+                  </div>
+                </div>
+              </div>
+            )}
 
             <div className="flex gap-3 justify-center">
               <Button 

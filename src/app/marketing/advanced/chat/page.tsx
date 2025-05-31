@@ -28,6 +28,21 @@ import { Input } from "@/components/ui/input";
 import { Textarea } from "@/components/ui/textarea";
 import Link from "next/link";
 
+interface ContentItem {
+  url: string;
+  prompt: string;
+  style: 'existing-brand' | 'ai-optimized';
+  type: 'social-post' | 'ad-banner' | 'hero-image' | 'product-showcase';
+}
+
+interface VideoContent {
+  url: string;
+  prompt: string;
+  duration: number;
+  progress?: number;
+  jobId?: string;
+}
+
 interface Message {
   id: string;
   role: 'user' | 'assistant';
@@ -35,6 +50,11 @@ interface Message {
   timestamp: Date;
   suggestions?: string[];
   actionItems?: ActionItem[];
+  contentResult?: {
+    images?: ContentItem[];
+    video?: VideoContent;
+    metadata?: any;
+  };
 }
 
 interface ActionItem {
@@ -47,58 +67,15 @@ interface ActionItem {
 }
 
 export default function AdvancedMarketingChat() {
-  const [messages, setMessages] = useState<Message[]>([
-    {
-      id: '1',
-      role: 'assistant',
-      content: `🚀 Welcome to Advanced Marketing Automation AI!
-
-I'm your expert marketing strategist, ready to help you create campaigns that generate real results. I can help you with:
-
-**🎯 Strategy Development**
-- Target audience identification
-- Competitive analysis
-- Multi-channel campaign planning
-- Budget optimization
-
-**📢 Campaign Creation**
-- Google Ads setup and optimization
-- Social media automation
-- Content marketing strategies
-- Email sequences
-
-**🤖 Free Automation**
-- Browser-based lead generation
-- Social platform engagement
-- Organic reach amplification
-- Lead nurturing sequences
-
-**📊 Analytics & Optimization**
-- Performance tracking setup
-- ROI analysis
-- A/B testing strategies
-- Conversion optimization
-
-Tell me about your business and I'll create a customized marketing strategy for you. What industry are you in and what's your main challenge?`,
-      timestamp: new Date(),
-      suggestions: [
-        "I run a commercial roofing business like SCS",
-        "I need more leads for my service business", 
-        "I want to compete with larger companies",
-        "I have a limited marketing budget",
-        "I'm new to online marketing"
-      ]
-    }
-  ]);
+  const [messages, setMessages] = useState<Message[]>([]);
   const [inputMessage, setInputMessage] = useState("");
   const [isTyping, setIsTyping] = useState(false);
-  const [businessContext, setBusinessContext] = useState({
-    industry: '',
-    targetAudience: '',
-    budgetRange: '',
-    mainChallenge: '',
-    currentMarketing: ''
-  });
+  const [conversationId, setConversationId] = useState<string>('');
+  const [userProfile, setUserProfile] = useState<any>(null);
+  const [showHumor, setShowHumor] = useState(false);
+  const [humorMessage, setHumorMessage] = useState('');
+  const [isProcessing, setIsProcessing] = useState(false);
+  const [memoryUsage, setMemoryUsage] = useState<any>(null);
   const messagesEndRef = useRef<HTMLDivElement>(null);
   const scrollAreaRef = useRef<HTMLDivElement>(null);
 
@@ -110,150 +87,260 @@ Tell me about your business and I'll create a customized marketing strategy for 
     scrollToBottom();
   }, [messages]);
 
-  const generateMarketingResponse = async (userMessage: string): Promise<Message> => {
-    // Simulate AI processing
-    await new Promise(resolve => setTimeout(resolve, 1500));
+  useEffect(() => {
+    // Load user profile and initialize conversation
+    const initializeChat = async () => {
+      try {
+        // Load user profile
+        const profileResponse = await fetch('/api/profile/get');
+        if (profileResponse.ok) {
+          const profile = await profileResponse.json();
+          setUserProfile(profile);
+        }
 
-    const businessKeywords = {
-      roofing: ['commercial roofing', 'roof coating', 'building managers', 'facilities'],
-      hvac: ['heating', 'cooling', 'hvac', 'commercial buildings'],
-      plumbing: ['plumbing', 'pipes', 'water', 'commercial'],
-      landscaping: ['landscaping', 'grounds', 'outdoor', 'maintenance'],
-      cleaning: ['cleaning', 'janitorial', 'commercial cleaning', 'facilities']
-    };
-
-    let detectedIndustry = '';
-    for (const [industry, keywords] of Object.entries(businessKeywords)) {
-      if (keywords.some(keyword => userMessage.toLowerCase().includes(keyword))) {
-        detectedIndustry = industry;
-        break;
-      }
-    }
-
-    const responses = {
-      roofing: {
-        content: `🏢 **Commercial Roofing Marketing Strategy**
-
-Great! I can see you're in commercial roofing. Here's a comprehensive strategy tailored for your industry:
-
-**🎯 Target Audience Analysis:**
-- **Primary**: Building/Facility Managers (decision makers)
-- **Secondary**: Property Management Companies
-- **Tertiary**: Building Owners & Maintenance Directors
-
-**📢 Recommended Campaign Strategy:**
-
-**1. Google Ads Campaign (High ROI)**
-- **Keywords**: "commercial roof repair [city]", "roof coating [city]", "flat roof maintenance"
-- **Budget**: $1,500-3,000/month
-- **Expected Results**: 15-25 qualified leads/month
-
-**2. Free Automation Strategy (Zero Cost)**
-- **LinkedIn Outreach**: Target facility managers and building owners
-- **Industry Forums**: Participate in commercial real estate discussions
-- **Local Business Networks**: Automated engagement with property management groups
-
-**3. Content Strategy:**
-- **Educational Content**: "5 Signs Your Commercial Roof Needs Attention"
-- **Case Studies**: Before/after photos with ROI calculations
-- **Seasonal Campaigns**: Pre-storm roof inspections, winter prep
-
-Would you like me to:
-A) Create specific Google Ads campaigns
-B) Set up the free automation system
-C) Develop content calendar and materials
-D) All of the above with implementation timeline`,
-        suggestions: [
-          "Create Google Ads campaigns for commercial roofing",
-          "Set up free automation for lead generation",
-          "Develop content strategy and materials",
-          "Show me budget breakdown and ROI projections"
-        ],
-        actionItems: [
-          {
-            type: 'campaign' as const,
-            title: 'Google Ads Campaign Setup',
-            description: 'Create targeted campaigns for commercial roofing keywords',
-            priority: 'high' as const,
-            estimated_cost: '$1,500-3,000/month',
-            estimated_time: '2-3 days'
+        // Create new conversation
+        const memoryResponse = await fetch('/api/memory/create', {
+          method: 'POST',
+          headers: {
+            'Content-Type': 'application/json',
           },
-          {
-            type: 'targeting' as const,
-            title: 'LinkedIn Automation Setup',
-            description: 'Target facility managers and building owners',
-            priority: 'high' as const,
-            estimated_cost: 'Free',
-            estimated_time: '1 day'
-          },
-          {
-            type: 'content' as const,
-            title: 'Educational Content Creation',
-            description: 'Develop roof maintenance guides and case studies',
-            priority: 'medium' as const,
-            estimated_cost: '$500-1,000',
-            estimated_time: '1 week'
-          }
-        ]
-      },
-      default: {
-        content: `💡 **Customized Marketing Strategy**
+          body: JSON.stringify({
+            userId: 'demo-user', // In production, get from auth
+            title: 'Marketing Strategy Session',
+            userContext: userProfile
+          }),
+        });
 
-I'd love to help you create an effective marketing strategy! To provide the most targeted recommendations, I need to understand your business better.
+        if (memoryResponse.ok) {
+          const { conversationId: newConversationId } = await memoryResponse.json();
+          setConversationId(newConversationId);
+          
+          // Send initial welcome message
+          await sendWelcomeMessage(newConversationId);
+        }
+      } catch (error) {
+        console.error('Chat initialization error:', error);
+        // Fallback to basic mode
+        setMessages([{
+          id: '1',
+          role: 'assistant',
+          content: `🚀 Welcome to Advanced Marketing Automation AI!
 
-**Let me ask you a few key questions:**
+I'm your expert marketing strategist powered by Claude Opus 4. Tell me about your ideal customer and I'll create a comprehensive marketing strategy specifically for your business.
 
-1. **What industry/business are you in?**
-2. **Who is your ideal customer?** (demographics, role, company size)
-3. **What's your monthly marketing budget range?**
-4. **What's your biggest challenge?** (leads, conversions, competition, etc.)
-5. **What marketing have you tried before?**
-
-**Meanwhile, here are some universal strategies that work for most businesses:**
-
-**🚀 Quick Wins (Free/Low Cost):**
-- **Social Media Automation**: Engage with prospects on LinkedIn, Facebook
-- **Content Marketing**: Educational posts that position you as an expert
-- **Local SEO**: Optimize for local searches in your area
-- **Email Sequences**: Nurture leads with valuable content
-
-**💰 Paid Strategies (Higher Investment, Faster Results):**
-- **Google Ads**: Target high-intent keywords
-- **Facebook/Instagram Ads**: Visual campaigns for brand awareness
-- **LinkedIn Ads**: B2B targeting for service businesses
-- **Retargeting**: Re-engage website visitors
-
-Tell me more about your specific situation and I'll create a detailed plan with exact steps and budget breakdowns!`,
-        suggestions: [
-          "I'm in commercial services (HVAC, plumbing, etc.)",
-          "I run a local service business",
-          "I need help with online marketing",
-          "I want to compete with bigger companies",
-          "My budget is under $2,000/month"
-        ],
-        actionItems: [
-          {
-            type: 'targeting' as const,
-            title: 'Business Profile Setup',
-            description: 'Complete your business information for targeted recommendations',
-            priority: 'high' as const,
-            estimated_cost: 'Free',
-            estimated_time: '10 minutes'
-          }
-        ]
+What's your business, and who are you trying to reach?`,
+          timestamp: new Date()
+        }]);
       }
     };
 
-    const response = responses[detectedIndustry as keyof typeof responses] || responses.default;
+    initializeChat();
+  }, []);
 
-    return {
-      id: Date.now().toString(),
+  const sendWelcomeMessage = async (convId: string) => {
+    const welcomeMessage: Message = {
+      id: 'welcome',
       role: 'assistant',
-      content: response.content,
+      content: `🚀 Welcome to Advanced Marketing Automation AI!
+
+I'm your expert marketing strategist powered by Claude Opus 4. I have access to:
+
+**🧠 AI Research Capabilities**
+- Real-time web research and business intelligence
+- Competitor analysis and market insights
+- Industry trend analysis and opportunities
+
+**🎨 Content Creation**
+- Custom marketing materials and campaigns
+- Video and image generation
+- Brand-aligned content development
+
+**🤖 Automation Setup**
+- Social media automation
+- Lead capture and nurturing
+- Email marketing sequences
+
+**📊 Strategy Development**
+- Personalized marketing strategies
+- ROI optimization recommendations
+- Multi-channel campaign planning
+
+${userProfile?.companyName ? `I see you're with ${userProfile.companyName}. ` : ''}Tell me about your ideal customer and I'll create a comprehensive marketing strategy specifically for your business.
+
+What's your business, and who are you trying to reach?`,
       timestamp: new Date(),
-      suggestions: response.suggestions,
-      actionItems: response.actionItems
+      suggestions: [
+        "Let me describe my ideal customer",
+        "I need help identifying my target market",
+        "I want to compete with larger companies",
+        "I need more qualified leads",
+        "My marketing isn't converting well"
+      ]
     };
+
+    setMessages([welcomeMessage]);
+  };
+
+  const generateMarketingResponse = async (userMessage: string): Promise<Message> => {
+    try {
+      // Determine if this is a customer description or general chat
+      const isCustomerDescription = userMessage.toLowerCase().includes('customer') || 
+                                   userMessage.toLowerCase().includes('target') ||
+                                   userMessage.length > 100; // Longer messages likely descriptions
+
+      let response: any;
+      
+      if (isCustomerDescription && !isProcessing) {
+        // This is likely a customer description - use the enhance endpoint
+        setIsProcessing(true);
+        setShowHumor(true);
+        
+        // Show humor while processing
+        showProcessingHumor();
+        
+        const enhanceResponse = await fetch('/api/ai/claude/enhance-customer', {
+          method: 'POST',
+          headers: {
+            'Content-Type': 'application/json',
+          },
+          body: JSON.stringify({
+            customerDescription: userMessage,
+            userContext: userProfile
+          }),
+        });
+
+        if (!enhanceResponse.ok) {
+          throw new Error('Failed to enhance customer description');
+        }
+
+        const enhanceData = await enhanceResponse.json();
+        
+        // Generate full strategy
+        const strategyResponse = await fetch('/api/ai/claude/generate-strategy', {
+          method: 'POST',
+          headers: {
+            'Content-Type': 'application/json',
+          },
+          body: JSON.stringify({
+            customerDescription: enhanceData.enhancedDescription,
+            userContext: userProfile,
+            preferences: {
+              budget: userProfile?.marketingBudget,
+              timeframe: '30 days',
+              channels: ['digital', 'social', 'content'],
+              goals: ['lead generation', 'brand awareness']
+            }
+          }),
+        });
+
+        if (!strategyResponse.ok) {
+          throw new Error('Failed to generate strategy');
+        }
+
+        const strategyData = await strategyResponse.json();
+        
+        setIsProcessing(false);
+        setShowHumor(false);
+        
+        response = {
+          content: `${enhanceData.enhancedDescription}\n\n**🎯 Complete Marketing Strategy:**\n\n${strategyData.strategy}`,
+          actionItems: strategyData.actionItems,
+          contentResult: strategyData.contentResult,
+          suggestions: [
+            "Approve this strategy and begin implementation",
+            "Modify the target customer description", 
+            "Show me specific campaign examples",
+            "What's the expected ROI?"
+          ]
+        };
+      } else {
+        // Regular chat message
+        const chatResponse = await fetch('/api/ai/claude/chat', {
+          method: 'POST',
+          headers: {
+            'Content-Type': 'application/json',
+          },
+          body: JSON.stringify({
+            messages: [
+              ...messages.map(m => ({ role: m.role, content: m.content })),
+              { role: 'user', content: userMessage }
+            ],
+            conversationId,
+            userContext: userProfile
+          }),
+        });
+
+        if (!chatResponse.ok) {
+          throw new Error('Failed to get chat response');
+        }
+
+        const chatData = await chatResponse.json();
+        
+        if (chatData.memoryUsage) {
+          setMemoryUsage(chatData.memoryUsage);
+        }
+        
+        response = {
+          content: chatData.response,
+          suggestions: [
+            "Tell me more about this",
+            "What are the next steps?",
+            "Show me examples",
+            "How much will this cost?"
+          ]
+        };
+      }
+
+      return {
+        id: Date.now().toString(),
+        role: 'assistant',
+        content: response.content,
+        timestamp: new Date(),
+        suggestions: response.suggestions,
+        actionItems: response.actionItems,
+        contentResult: response.contentResult
+      };
+    } catch (error) {
+      console.error('Error generating response:', error);
+      return {
+        id: Date.now().toString(),
+        role: 'assistant',
+        content: `I apologize, but I'm having trouble processing your request right now. This might be due to API configuration. Let me help you in a different way - could you tell me more about your business and what specific marketing challenge you're facing?`,
+        timestamp: new Date(),
+        suggestions: [
+          "Let me try a different approach",
+          "What's your biggest marketing challenge?",
+          "Tell me about your business goals",
+          "How can I help you grow?"
+        ]
+      };
+    }
+  };
+
+  const showProcessingHumor = async () => {
+    const humorMessages = [
+      "Would you ever consider dating a computer?",
+      "Do you think AI is going to take over the world some day and destroy all of mankind? haha... just kidding...",
+      "If robots could dream, do you think they'd dream of electric sheep... or electric marketing campaigns?",
+      "Fun fact: I process about 10 billion thoughts per second, but I still can't figure out why humans put pineapple on pizza.",
+      "While I research your industry, here's a question: Is cereal soup?",
+      "Quick philosophy question: If a tree falls in a forest and no one's around to hear it, does it make a sound? Also, does it need a marketing campaign?"
+    ];
+
+    for (let i = 0; i < 3; i++) {
+      if (!isProcessing) break;
+      
+      const randomHumor = humorMessages[Math.floor(Math.random() * humorMessages.length)];
+      setHumorMessage(randomHumor);
+      
+      await new Promise(resolve => setTimeout(resolve, 2000));
+      
+      if (!isProcessing) break;
+      setHumorMessage('');
+      await new Promise(resolve => setTimeout(resolve, 1000));
+    }
+    
+    setHumorMessage('Thinking... 😊');
   };
 
   const handleSendMessage = async () => {
@@ -465,6 +552,137 @@ Tell me more about your specific situation and I'll create a detailed plan with 
                               </div>
                             </div>
                           )}
+
+                          {/* Generated Marketing Content */}
+                          {message.contentResult && (message.contentResult.images || message.contentResult.video) && (
+                            <div className="mt-4">
+                              <p className="text-xs text-gray-400 font-semibold mb-3">🎨 Generated Marketing Materials:</p>
+                              
+                              {/* A/B Test Images */}
+                              {message.contentResult.images && (
+                                <div className="mb-4">
+                                  <h5 className="text-sm text-white font-semibold mb-3">A/B Test Image Variations</h5>
+                                  <div className="grid grid-cols-2 gap-3">
+                                    {message.contentResult.images.map((image, index) => (
+                                      <div 
+                                        key={index}
+                                        className="relative group bg-gray-900/50 rounded-lg border border-gray-700 overflow-hidden"
+                                      >
+                                        <div className="aspect-square relative">
+                                          <img 
+                                            src={image.url} 
+                                            alt={`Marketing image ${index + 1}`}
+                                            className="w-full h-full object-cover"
+                                          />
+                                          <div className="absolute inset-0 bg-black/60 opacity-0 group-hover:opacity-100 transition-opacity duration-300 flex items-center justify-center">
+                                            <div className="text-center p-2">
+                                              <p className="text-white text-xs font-semibold mb-1">
+                                                {image.style === 'existing-brand' ? '🏢 Brand Style' : '🚀 AI Optimized'}
+                                              </p>
+                                              <p className="text-gray-300 text-xs">{image.type}</p>
+                                            </div>
+                                          </div>
+                                        </div>
+                                        <div className="p-2">
+                                          <div className="flex items-center justify-between">
+                                            <span className={`text-xs px-2 py-1 rounded ${
+                                              image.style === 'existing-brand' 
+                                                ? 'bg-blue-500/20 text-blue-300' 
+                                                : 'bg-purple-500/20 text-purple-300'
+                                            }`}>
+                                              {image.style === 'existing-brand' ? 'Current Style' : 'AI Enhanced'}
+                                            </span>
+                                            <div className="flex space-x-1">
+                                              <Button
+                                                size="sm"
+                                                variant="ghost"
+                                                className="text-xs h-6 px-2"
+                                                onClick={() => window.open(image.url, '_blank')}
+                                              >
+                                                <Download className="w-3 h-3" />
+                                              </Button>
+                                              <Button
+                                                size="sm"
+                                                variant="ghost"
+                                                className="text-xs h-6 px-2"
+                                              >
+                                                Save
+                                              </Button>
+                                            </div>
+                                          </div>
+                                        </div>
+                                      </div>
+                                    ))}
+                                  </div>
+                                </div>
+                              )}
+
+                              {/* Generated Video */}
+                              {message.contentResult.video && (
+                                <div className="mb-4">
+                                  <h5 className="text-sm text-white font-semibold mb-3">Marketing Video</h5>
+                                  <div className="bg-gray-900/50 rounded-lg border border-gray-700 overflow-hidden">
+                                    <div className="aspect-video relative">
+                                      {message.contentResult.video.progress === 100 ? (
+                                        <video 
+                                          src={message.contentResult.video.url} 
+                                          controls
+                                          className="w-full h-full object-cover"
+                                        />
+                                      ) : (
+                                        <div className="w-full h-full bg-gray-800 flex items-center justify-center">
+                                          <div className="text-center">
+                                            <Loader2 className="w-8 h-8 animate-spin text-purple-500 mx-auto mb-2" />
+                                            <p className="text-white text-sm">Generating video...</p>
+                                            <p className="text-gray-400 text-xs">
+                                              Progress: {message.contentResult.video.progress || 0}%
+                                            </p>
+                                          </div>
+                                        </div>
+                                      )}
+                                    </div>
+                                    <div className="p-3">
+                                      <div className="flex items-center justify-between">
+                                        <div>
+                                          <p className="text-white text-sm font-semibold">
+                                            {message.contentResult.video.duration}s Marketing Video
+                                          </p>
+                                          <p className="text-gray-400 text-xs">
+                                            {message.contentResult.video.prompt.substring(0, 50)}...
+                                          </p>
+                                        </div>
+                                        <div className="flex space-x-2">
+                                          <Button
+                                            size="sm"
+                                            variant="outline"
+                                            className="text-xs"
+                                          >
+                                            <Download className="w-3 h-3 mr-1" />
+                                            Download
+                                          </Button>
+                                          <Button
+                                            size="sm"
+                                            className="bg-purple-600 hover:bg-purple-700 text-xs"
+                                          >
+                                            Save to Campaign
+                                          </Button>
+                                        </div>
+                                      </div>
+                                    </div>
+                                  </div>
+                                </div>
+                              )}
+
+                              {/* Content Metadata */}
+                              {message.contentResult.metadata && (
+                                <div className="text-xs text-gray-500 mt-2">
+                                  Generated {message.contentResult.metadata.totalItems} items in {
+                                    Math.round(message.contentResult.metadata.processingTime / 1000)
+                                  }s
+                                </div>
+                              )}
+                            </div>
+                          )}
                         </div>
                       </div>
                     </div>
@@ -485,6 +703,51 @@ Tell me more about your specific situation and I'll create a detailed plan with 
                         <div className="flex items-center space-x-2">
                           <Loader2 className="w-4 h-4 animate-spin text-purple-500" />
                           <span className="text-gray-400 text-sm">AI is thinking...</span>
+                        </div>
+                      </div>
+                    </div>
+                  </motion.div>
+                )}
+
+                {showHumor && humorMessage && (
+                  <motion.div
+                    initial={{ opacity: 0, y: 20 }}
+                    animate={{ opacity: 1, y: 0 }}
+                    exit={{ opacity: 0, y: -20 }}
+                    className="flex justify-start"
+                  >
+                    <div className="flex items-start space-x-3">
+                      <div className="w-8 h-8 rounded-full bg-gradient-to-r from-purple-500 to-pink-500 flex items-center justify-center">
+                        <Bot className="w-4 h-4 text-white animate-pulse" />
+                      </div>
+                      <div className="bg-gray-800/70 rounded-lg p-4 border border-purple-500/30">
+                        <div className="text-purple-300 text-sm italic">
+                          {humorMessage}
+                        </div>
+                      </div>
+                    </div>
+                  </motion.div>
+                )}
+
+                {isProcessing && (
+                  <motion.div
+                    initial={{ opacity: 0 }}
+                    animate={{ opacity: 1 }}
+                    className="flex justify-start"
+                  >
+                    <div className="flex items-start space-x-3">
+                      <div className="w-8 h-8 rounded-full bg-gradient-to-r from-purple-500 to-pink-500 flex items-center justify-center">
+                        <Bot className="w-4 h-4 text-white animate-bounce" />
+                      </div>
+                      <div className="bg-gradient-to-r from-purple-900/30 to-pink-900/30 rounded-lg p-4 border border-purple-500/30">
+                        <div className="flex items-center space-x-2">
+                          <Sparkles className="w-4 h-4 text-purple-400 animate-pulse" />
+                          <span className="text-purple-300 text-sm">
+                            Creating your personalized marketing strategy...
+                          </span>
+                        </div>
+                        <div className="mt-2 text-xs text-purple-400">
+                          Researching your industry • Analyzing competitors • Generating content ideas
                         </div>
                       </div>
                     </div>
@@ -595,6 +858,31 @@ Tell me more about your specific situation and I'll create a detailed plan with 
                   {messages.reduce((total, m) => total + (m.actionItems?.length || 0), 0)}
                 </span>
               </div>
+              {memoryUsage && (
+                <>
+                  <div className="border-t border-gray-700 pt-2 mt-2">
+                    <div className="flex justify-between">
+                      <span className="text-gray-400">Memory Usage:</span>
+                      <span className={`text-white ${memoryUsage.usagePercentage > 85 ? 'text-yellow-400' : ''}`}>
+                        {memoryUsage.usagePercentage.toFixed(1)}%
+                      </span>
+                    </div>
+                    <div className="w-full bg-gray-700 rounded-full h-2 mt-1">
+                      <div 
+                        className={`h-2 rounded-full transition-all duration-300 ${
+                          memoryUsage.usagePercentage > 85 ? 'bg-yellow-400' : 'bg-purple-500'
+                        }`}
+                        style={{ width: `${Math.min(memoryUsage.usagePercentage, 100)}%` }}
+                      ></div>
+                    </div>
+                    {memoryUsage.compressionNeeded && (
+                      <div className="text-xs text-yellow-400 mt-1">
+                        Memory compression recommended
+                      </div>
+                    )}
+                  </div>
+                </>
+              )}
             </div>
           </Card>
         </div>

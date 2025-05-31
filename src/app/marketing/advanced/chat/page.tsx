@@ -28,6 +28,21 @@ import { Input } from "@/components/ui/input";
 import { Textarea } from "@/components/ui/textarea";
 import Link from "next/link";
 
+interface ContentItem {
+  url: string;
+  prompt: string;
+  style: 'existing-brand' | 'ai-optimized';
+  type: 'social-post' | 'ad-banner' | 'hero-image' | 'product-showcase';
+}
+
+interface VideoContent {
+  url: string;
+  prompt: string;
+  duration: number;
+  progress?: number;
+  jobId?: string;
+}
+
 interface Message {
   id: string;
   role: 'user' | 'assistant';
@@ -35,6 +50,11 @@ interface Message {
   timestamp: Date;
   suggestions?: string[];
   actionItems?: ActionItem[];
+  contentResult?: {
+    images?: ContentItem[];
+    video?: VideoContent;
+    metadata?: any;
+  };
 }
 
 interface ActionItem {
@@ -225,6 +245,7 @@ What's your business, and who are you trying to reach?`,
         response = {
           content: `${enhanceData.enhancedDescription}\n\n**🎯 Complete Marketing Strategy:**\n\n${strategyData.strategy}`,
           actionItems: strategyData.actionItems,
+          contentResult: strategyData.contentResult,
           suggestions: [
             "Approve this strategy and begin implementation",
             "Modify the target customer description", 
@@ -276,7 +297,8 @@ What's your business, and who are you trying to reach?`,
         content: response.content,
         timestamp: new Date(),
         suggestions: response.suggestions,
-        actionItems: response.actionItems
+        actionItems: response.actionItems,
+        contentResult: response.contentResult
       };
     } catch (error) {
       console.error('Error generating response:', error);
@@ -528,6 +550,137 @@ What's your business, and who are you trying to reach?`,
                                   </div>
                                 ))}
                               </div>
+                            </div>
+                          )}
+
+                          {/* Generated Marketing Content */}
+                          {message.contentResult && (message.contentResult.images || message.contentResult.video) && (
+                            <div className="mt-4">
+                              <p className="text-xs text-gray-400 font-semibold mb-3">🎨 Generated Marketing Materials:</p>
+                              
+                              {/* A/B Test Images */}
+                              {message.contentResult.images && (
+                                <div className="mb-4">
+                                  <h5 className="text-sm text-white font-semibold mb-3">A/B Test Image Variations</h5>
+                                  <div className="grid grid-cols-2 gap-3">
+                                    {message.contentResult.images.map((image, index) => (
+                                      <div 
+                                        key={index}
+                                        className="relative group bg-gray-900/50 rounded-lg border border-gray-700 overflow-hidden"
+                                      >
+                                        <div className="aspect-square relative">
+                                          <img 
+                                            src={image.url} 
+                                            alt={`Marketing image ${index + 1}`}
+                                            className="w-full h-full object-cover"
+                                          />
+                                          <div className="absolute inset-0 bg-black/60 opacity-0 group-hover:opacity-100 transition-opacity duration-300 flex items-center justify-center">
+                                            <div className="text-center p-2">
+                                              <p className="text-white text-xs font-semibold mb-1">
+                                                {image.style === 'existing-brand' ? '🏢 Brand Style' : '🚀 AI Optimized'}
+                                              </p>
+                                              <p className="text-gray-300 text-xs">{image.type}</p>
+                                            </div>
+                                          </div>
+                                        </div>
+                                        <div className="p-2">
+                                          <div className="flex items-center justify-between">
+                                            <span className={`text-xs px-2 py-1 rounded ${
+                                              image.style === 'existing-brand' 
+                                                ? 'bg-blue-500/20 text-blue-300' 
+                                                : 'bg-purple-500/20 text-purple-300'
+                                            }`}>
+                                              {image.style === 'existing-brand' ? 'Current Style' : 'AI Enhanced'}
+                                            </span>
+                                            <div className="flex space-x-1">
+                                              <Button
+                                                size="sm"
+                                                variant="ghost"
+                                                className="text-xs h-6 px-2"
+                                                onClick={() => window.open(image.url, '_blank')}
+                                              >
+                                                <Download className="w-3 h-3" />
+                                              </Button>
+                                              <Button
+                                                size="sm"
+                                                variant="ghost"
+                                                className="text-xs h-6 px-2"
+                                              >
+                                                Save
+                                              </Button>
+                                            </div>
+                                          </div>
+                                        </div>
+                                      </div>
+                                    ))}
+                                  </div>
+                                </div>
+                              )}
+
+                              {/* Generated Video */}
+                              {message.contentResult.video && (
+                                <div className="mb-4">
+                                  <h5 className="text-sm text-white font-semibold mb-3">Marketing Video</h5>
+                                  <div className="bg-gray-900/50 rounded-lg border border-gray-700 overflow-hidden">
+                                    <div className="aspect-video relative">
+                                      {message.contentResult.video.progress === 100 ? (
+                                        <video 
+                                          src={message.contentResult.video.url} 
+                                          controls
+                                          className="w-full h-full object-cover"
+                                        />
+                                      ) : (
+                                        <div className="w-full h-full bg-gray-800 flex items-center justify-center">
+                                          <div className="text-center">
+                                            <Loader2 className="w-8 h-8 animate-spin text-purple-500 mx-auto mb-2" />
+                                            <p className="text-white text-sm">Generating video...</p>
+                                            <p className="text-gray-400 text-xs">
+                                              Progress: {message.contentResult.video.progress || 0}%
+                                            </p>
+                                          </div>
+                                        </div>
+                                      )}
+                                    </div>
+                                    <div className="p-3">
+                                      <div className="flex items-center justify-between">
+                                        <div>
+                                          <p className="text-white text-sm font-semibold">
+                                            {message.contentResult.video.duration}s Marketing Video
+                                          </p>
+                                          <p className="text-gray-400 text-xs">
+                                            {message.contentResult.video.prompt.substring(0, 50)}...
+                                          </p>
+                                        </div>
+                                        <div className="flex space-x-2">
+                                          <Button
+                                            size="sm"
+                                            variant="outline"
+                                            className="text-xs"
+                                          >
+                                            <Download className="w-3 h-3 mr-1" />
+                                            Download
+                                          </Button>
+                                          <Button
+                                            size="sm"
+                                            className="bg-purple-600 hover:bg-purple-700 text-xs"
+                                          >
+                                            Save to Campaign
+                                          </Button>
+                                        </div>
+                                      </div>
+                                    </div>
+                                  </div>
+                                </div>
+                              )}
+
+                              {/* Content Metadata */}
+                              {message.contentResult.metadata && (
+                                <div className="text-xs text-gray-500 mt-2">
+                                  Generated {message.contentResult.metadata.totalItems} items in {
+                                    Math.round(message.contentResult.metadata.processingTime / 1000)
+                                  }s
+                                </div>
+                              )}
                             </div>
                           )}
                         </div>

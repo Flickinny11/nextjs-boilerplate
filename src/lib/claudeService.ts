@@ -192,6 +192,14 @@ Make this practical and actionable for my business.`
       estimatedTime: string;
       category: 'content' | 'advertising' | 'automation' | 'research';
     }>;
+    contentRequest?: {
+      companyName: string;
+      targetAudience: string;
+      messageType: 'promotional' | 'educational' | 'testimonial' | 'brand-awareness';
+      keyMessage: string;
+      style: 'professional' | 'casual' | 'modern' | 'classic';
+      callToAction?: string;
+    };
   }> {
     const messages: ClaudeMessage[] = [
       {
@@ -211,12 +219,17 @@ Create a comprehensive marketing strategy with:
 3. Budget estimates and timelines
 4. Expected outcomes and metrics
 
+Also, based on this customer analysis, provide content creation parameters for generating marketing materials that would resonate with this target audience.
+
 Focus on actionable steps that can be implemented immediately.`
       }
     ];
 
     try {
       const response = await this.chat(messages, userContext, 6000);
+      
+      // Extract content creation parameters from user context and strategy
+      const contentRequest = this.extractContentParameters(customerDescription, userContext, response);
       
       // Mock action items - in production, parse these from the response
       const actionItems = [
@@ -237,6 +250,14 @@ Focus on actionable steps that can be implemented immediately.`
           category: 'content' as const
         },
         {
+          title: 'Marketing Materials Generation',
+          description: 'AI-generated images and videos for campaign deployment',
+          priority: 'high' as const,
+          estimatedCost: '$200-500',
+          estimatedTime: '2-3 days',
+          category: 'content' as const
+        },
+        {
           title: 'Automated Lead Capture Setup',
           description: 'Implement browser automation for organic lead generation',
           priority: 'medium' as const,
@@ -248,11 +269,106 @@ Focus on actionable steps that can be implemented immediately.`
 
       return {
         strategy: response,
-        actionItems
+        actionItems,
+        contentRequest
       };
     } catch (error) {
       console.error('Error generating marketing strategy:', error);
       throw error;
+    }
+  }
+
+  private extractContentParameters(
+    customerDescription: string, 
+    userContext: UserContext, 
+    strategy: string
+  ): any {
+    // Analyze the customer description and strategy to extract content parameters
+    const messageType = this.determineMessageType(customerDescription, strategy);
+    const style = this.determineStyle(userContext, strategy);
+    const keyMessage = this.extractKeyMessage(customerDescription, strategy);
+    
+    return {
+      companyName: userContext.companyName || 'Your Company',
+      targetAudience: this.summarizeTargetAudience(customerDescription),
+      messageType,
+      keyMessage,
+      style,
+      callToAction: this.generateCallToAction(messageType, keyMessage)
+    };
+  }
+
+  private determineMessageType(customerDescription: string, strategy: string): string {
+    const description = customerDescription.toLowerCase();
+    const strategyText = strategy.toLowerCase();
+    
+    if (description.includes('discount') || description.includes('sale') || strategyText.includes('promotional')) {
+      return 'promotional';
+    } else if (description.includes('learn') || description.includes('education') || strategyText.includes('educational')) {
+      return 'educational';
+    } else if (description.includes('trust') || description.includes('testimonial') || strategyText.includes('social proof')) {
+      return 'testimonial';
+    } else {
+      return 'brand-awareness';
+    }
+  }
+
+  private determineStyle(userContext: UserContext, strategy: string): string {
+    const industry = userContext.industry?.toLowerCase() || '';
+    const strategyText = strategy.toLowerCase();
+    
+    if (industry.includes('finance') || industry.includes('legal') || strategyText.includes('professional')) {
+      return 'professional';
+    } else if (industry.includes('tech') || industry.includes('startup') || strategyText.includes('modern')) {
+      return 'modern';
+    } else if (industry.includes('retail') || industry.includes('restaurant') || strategyText.includes('friendly')) {
+      return 'casual';
+    } else {
+      return 'classic';
+    }
+  }
+
+  private extractKeyMessage(customerDescription: string, strategy: string): string {
+    // Extract the core value proposition from the customer description and strategy
+    const lines = strategy.split('\n');
+    const keyLine = lines.find(line => 
+      line.toLowerCase().includes('key message') || 
+      line.toLowerCase().includes('value proposition') ||
+      line.toLowerCase().includes('main benefit')
+    );
+    
+    if (keyLine) {
+      return keyLine.replace(/^[^:]*:/, '').trim();
+    }
+    
+    // Fallback to a summary of the customer description
+    return customerDescription.length > 100 
+      ? customerDescription.substring(0, 100) + '...'
+      : customerDescription;
+  }
+
+  private summarizeTargetAudience(customerDescription: string): string {
+    // Extract target audience summary from customer description
+    const lines = customerDescription.split(/[.!?]+/);
+    const audienceLine = lines.find(line => 
+      line.toLowerCase().includes('customer') || 
+      line.toLowerCase().includes('client') ||
+      line.toLowerCase().includes('audience')
+    );
+    
+    return audienceLine ? audienceLine.trim() : 'Business decision-makers';
+  }
+
+  private generateCallToAction(messageType: string, keyMessage: string): string {
+    switch (messageType) {
+      case 'promotional':
+        return 'Get Your Special Offer Now';
+      case 'educational':
+        return 'Learn More';
+      case 'testimonial':
+        return 'See What Others Say';
+      default:
+        return 'Get Started Today';
     }
   }
 

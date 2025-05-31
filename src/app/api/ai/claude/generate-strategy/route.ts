@@ -20,6 +20,26 @@ export async function POST(request: NextRequest) {
       preferences
     );
 
+    // Generate marketing content if we have content parameters
+    let contentResult = null;
+    if (strategyResult.contentRequest) {
+      try {
+        const contentResponse = await fetch(`${process.env.NEXTJS_URL || 'http://localhost:3000'}/api/content/generate`, {
+          method: 'POST',
+          headers: {
+            'Content-Type': 'application/json',
+          },
+          body: JSON.stringify(strategyResult.contentRequest),
+        });
+
+        if (contentResponse.ok) {
+          contentResult = await contentResponse.json();
+        }
+      } catch (error) {
+        console.error('Content generation error:', error);
+      }
+    }
+
     // Conduct competitive analysis if user context includes industry
     let competitorAnalysis = null;
     if (userContext?.industry) {
@@ -53,9 +73,11 @@ export async function POST(request: NextRequest) {
       ...strategyResult,
       competitorAnalysis,
       potentialLeads,
+      contentResult,
       recommendations: {
         nextSteps: [
           'Review and approve the marketing strategy',
+          'Examine generated marketing materials',
           'Set up initial content creation',
           'Configure lead capture automation',
           'Launch pilot campaign'

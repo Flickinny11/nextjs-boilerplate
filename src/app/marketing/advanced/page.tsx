@@ -171,6 +171,74 @@ export default function AdvancedMarketingAutomations() {
         </TabsList>
 
         <TabsContent value="overview" className="space-y-8">
+          {/* Explain Your Ideal Customer Section */}
+          <motion.div
+            initial={{ opacity: 0, y: 20 }}
+            animate={{ opacity: 1, y: 0 }}
+            transition={{ duration: 0.5, delay: 0.2 }}
+            className="mb-12"
+          >
+            <Card className="p-8 bg-black/50 backdrop-blur-lg border-gray-800 relative overflow-hidden">
+              {/* Animated background */}
+              <div className="absolute inset-0 bg-gradient-to-r from-purple-500/10 via-pink-500/10 to-red-500/10 animate-gradient-x"></div>
+              
+              <div className="relative z-10">
+                <motion.h2 
+                  className="text-4xl font-bold text-transparent bg-clip-text bg-gradient-to-r from-purple-400 via-pink-500 to-red-500 mb-4 text-center"
+                  style={{
+                    filter: 'drop-shadow(0 0 10px rgba(168, 85, 247, 0.3))',
+                    textShadow: '0 0 20px rgba(168, 85, 247, 0.5)'
+                  }}
+                  animate={{
+                    scale: [1, 1.02, 1],
+                    opacity: [0.8, 1, 0.8]
+                  }}
+                  transition={{
+                    duration: 3,
+                    repeat: Infinity,
+                    ease: "easeInOut"
+                  }}
+                >
+                  Explain Your Ideal Customer
+                </motion.h2>
+                
+                <div className="text-center mb-6">
+                  <motion.p 
+                    className="text-xl text-gray-300 leading-relaxed max-w-4xl mx-auto"
+                    initial={{ opacity: 0 }}
+                    animate={{ opacity: 1 }}
+                    transition={{ delay: 0.5 }}
+                  >
+                    Enter your ideal customer description for CaptureIT to create an entire marketing campaign, 
+                    create and post marketing content, targeted ads, workflows, automations, respond to inquiries, 
+                    set meetings on your calendar, respond to emails, and transform your business growth.
+                  </motion.p>
+                </div>
+
+                <div className="max-w-2xl mx-auto">
+                  <Link href="/marketing/advanced/chat">
+                    <Card className="p-6 bg-gray-900/50 border-purple-500/30 hover:border-purple-500/60 transition-all duration-300 cursor-pointer group">
+                      <div className="text-center">
+                        <Brain className="w-16 h-16 text-purple-500 mx-auto mb-4 group-hover:scale-110 transition-transform duration-300" />
+                        <h3 className="text-xl font-bold text-white mb-3">Start AI Strategy Session</h3>
+                        <div className="text-gray-400 text-sm mb-4 italic">
+                          "Simply enter exactly who your ideal customer is as if I'm your buddy. 
+                          Don't worry 'bout grammar, imperfection, run-on sentences or spelling. 
+                          Just give it to me - in any order."
+                        </div>
+                        <Button className="bg-gradient-to-r from-purple-600 to-pink-600 hover:from-purple-700 hover:to-pink-700 group-hover:scale-105 transition-all duration-300">
+                          <MessageSquare className="w-4 h-4 mr-2" />
+                          Begin Customer Analysis
+                          <ChevronRight className="w-4 h-4 ml-2 group-hover:translate-x-1 transition-transform" />
+                        </Button>
+                      </div>
+                    </Card>
+                  </Link>
+                </div>
+              </div>
+            </Card>
+          </motion.div>
+
           {/* Quick Actions */}
           <div>
             <h2 className="text-2xl font-bold mb-6 text-white">Quick Actions</h2>

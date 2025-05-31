@@ -121,9 +121,8 @@ export default function SignupPage() {
         const data = await response.json();
         setMessage({ type: 'success', text: 'Account created successfully! Redirecting...' });
         
-        // Auto-login the user
+        // Auto-redirect the user
         setTimeout(() => {
-          login(data.user);
           window.location.href = '/dashboard';
         }, 2000);
       } else {

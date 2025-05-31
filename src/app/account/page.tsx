@@ -515,7 +515,7 @@ function AccountContent() {
                             <div className="text-xs text-gray-400">Uptime</div>
                           </div>
                           <div className="text-center p-3 bg-gray-800/30 rounded-lg">
-                            <div className="text-2xl font-bold text-blue-400">< 500ms</div>
+                            <div className="text-2xl font-bold text-blue-400">&lt; 500ms</div>
                             <div className="text-xs text-gray-400">Response Time</div>
                           </div>
                           <div className="text-center p-3 bg-gray-800/30 rounded-lg">

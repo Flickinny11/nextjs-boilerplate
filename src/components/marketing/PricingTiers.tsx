@@ -74,20 +74,29 @@ const organizationTiers = [
   {
     name: "Enterprise",
     price: "$800",
-    description: "For large organizations with advanced needs",
+    description: "For large organizations with advanced management needs",
     maxMembers: "Unlimited" as const,
     credits: "100,000",
     features: [
       "Unlimited team members",
       "100,000 credits per month",
       "Full organization management",
+      "🚀 Manager Console Dashboard",
+      "📊 Real-time employee monitoring",
+      "🤖 Smart collaboration alerts",
+      "🎯 Performance insights & analytics",
+      "💬 Team communication tools",
+      "🔗 Cross-employee opportunity detection",
+      "🏆 Competitive intelligence sharing",
+      "📈 Predictive team analytics",
+      "🎓 Manager assistance AI",
       "Custom roles and permissions",
-      "Advanced analytics",
       "Dedicated support",
       "Custom integrations",
       "SSO integration",
       "Audit logs"
-    ]
+    ],
+    highlight: "🔥 NEW: Manager Console - The only CRM that helps managers help their teams!"
   }
 ];
 
@@ -208,6 +217,16 @@ export function PricingTiers() {
                     </li>
                   ))}
                 </ul>
+
+                {/* Manager Console Highlight for Enterprise */}
+                {tier.name === 'Enterprise' && viewMode === 'organization' && 'highlight' in tier && (
+                  <div className="mb-6 p-4 bg-gradient-to-r from-blue-500/10 to-purple-500/10 border border-blue-500/20 rounded-lg">
+                    <div className="text-center">
+                      <div className="text-sm font-semibold text-blue-400 mb-2">🔥 EXCLUSIVE ENTERPRISE FEATURE</div>
+                      <div className="text-xs text-blue-300">{tier.highlight}</div>
+                    </div>
+                  </div>
+                )}
 
                 <Button
                   className={`w-full ${

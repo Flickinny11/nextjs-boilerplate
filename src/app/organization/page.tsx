@@ -19,7 +19,8 @@ import {
   Clock,
   DollarSign,
   UserPlus,
-  Trash2
+  Trash2,
+  Crown
 } from 'lucide-react'
 import { 
   Organization, 
@@ -40,6 +41,7 @@ export default function OrganizationDashboard() {
   const [usage, setUsage] = useState<OrganizationUsage | null>(null)
   const [showCreateOrg, setShowCreateOrg] = useState(false)
   const [showInviteModal, setShowInviteModal] = useState(false)
+  const [userRole, setUserRole] = useState<OrganizationRole>('employee') // Mock user role
 
   const [newOrgForm, setNewOrgForm] = useState({
     name: '',
@@ -55,12 +57,15 @@ export default function OrganizationDashboard() {
   const tabs = [
     { id: 'overview', label: 'Overview', icon: Building2 },
     { id: 'members', label: 'Members', icon: Users },
+    { id: 'manager-console', label: 'Manager Console', icon: Shield, requiresRole: ['manager', 'admin', 'owner'], requiresPlan: 'enterprise' },
     { id: 'billing', label: 'Billing', icon: CreditCard },
     { id: 'settings', label: 'Settings', icon: Settings }
   ]
 
   useEffect(() => {
     loadOrganizations()
+    // Mock setting user role - in real app this would come from auth context
+    setUserRole('manager') // Simulate manager role for demo
   }, [])
 
   useEffect(() => {
@@ -208,6 +213,16 @@ export default function OrganizationDashboard() {
     }
   }
 
+  const canAccessTab = (tab: any) => {
+    if (tab.requiresRole && !tab.requiresRole.includes(userRole)) {
+      return false
+    }
+    if (tab.requiresPlan && selectedOrg?.plan.id !== tab.requiresPlan) {
+      return false
+    }
+    return true
+  }
+
   if (organizations.length === 0 && !showCreateOrg) {
     return (
       <div className="container mx-auto px-4 py-8">
@@ -296,20 +311,29 @@ export default function OrganizationDashboard() {
         >
           <Card className="p-4 bg-gray-900/50 border-gray-700">
             <div className="space-y-2">
-              {tabs.map((tab) => (
-                <button
-                  key={tab.id}
-                  onClick={() => setActiveTab(tab.id)}
-                  className={`w-full flex items-center gap-3 px-3 py-2 rounded-lg text-left transition-colors ${
-                    activeTab === tab.id
-                      ? 'bg-blue-600 text-white'
-                      : 'text-gray-400 hover:text-white hover:bg-gray-800'
-                  }`}
-                >
-                  <tab.icon className="w-4 h-4" />
-                  {tab.label}
-                </button>
-              ))}
+              {tabs.map((tab) => {
+                const canAccess = canAccessTab(tab)
+                return (
+                  <button
+                    key={tab.id}
+                    onClick={() => canAccess && setActiveTab(tab.id)}
+                    disabled={!canAccess}
+                    className={`w-full flex items-center gap-3 px-3 py-2 rounded-lg text-left transition-colors ${
+                      activeTab === tab.id
+                        ? 'bg-blue-600 text-white'
+                        : canAccess
+                        ? 'text-gray-400 hover:text-white hover:bg-gray-800'
+                        : 'text-gray-600 cursor-not-allowed'
+                    }`}
+                  >
+                    <tab.icon className="w-4 h-4" />
+                    {tab.label}
+                    {!canAccess && tab.requiresPlan === 'enterprise' && (
+                      <Crown className="w-3 h-3 text-yellow-400 ml-auto" />
+                    )}
+                  </button>
+                )
+              })}
             </div>
           </Card>
         </motion.div>
@@ -577,6 +601,63 @@ export default function OrganizationDashboard() {
                     No billing history available yet.
                   </div>
                 </div>
+              </div>
+            )}
+
+            {/* Manager Console Tab */}
+            {activeTab === 'manager-console' && (
+              <div className="space-y-6">
+                {canAccessTab(tabs.find(t => t.id === 'manager-console')!) ? (
+                  <div className="text-center py-12">
+                    <Shield className="w-16 h-16 mx-auto text-blue-400 mb-4" />
+                    <h2 className="text-2xl font-semibold text-white mb-4">Manager Console</h2>
+                    <p className="text-gray-400 mb-6">
+                      Access the full Manager Console with advanced team monitoring, smart alerts, and collaboration tools.
+                    </p>
+                    <div className="bg-blue-500/10 border border-blue-500/20 rounded-lg p-6 mb-6 max-w-2xl mx-auto">
+                      <h3 className="text-blue-400 font-semibold mb-3">🚀 Enterprise Features Available:</h3>
+                      <div className="grid grid-cols-1 md:grid-cols-2 gap-3 text-sm text-blue-300">
+                        <div>• Real-time employee monitoring</div>
+                        <div>• Smart collaboration alerts</div>
+                        <div>• Performance insights</div>
+                        <div>• Team communication tools</div>
+                        <div>• Cross-employee opportunities</div>
+                        <div>• Competitive intelligence</div>
+                        <div>• Predictive analytics</div>
+                        <div>• Manager assistance AI</div>
+                      </div>
+                    </div>
+                    <button
+                      onClick={() => window.open('/manager-console', '_blank')}
+                      className="bg-blue-600 hover:bg-blue-700 text-white px-6 py-3 rounded-lg font-medium transition-colors"
+                    >
+                      <Shield className="w-4 h-4 mr-2 inline" />
+                      Open Manager Console
+                    </button>
+                  </div>
+                ) : (
+                  <div className="text-center py-12">
+                    <Crown className="w-16 h-16 mx-auto text-yellow-400 mb-4" />
+                    <h2 className="text-2xl font-semibold text-white mb-4">Enterprise Feature</h2>
+                    <p className="text-gray-400 mb-6">
+                      The Manager Console is available exclusively on the Enterprise plan.
+                    </p>
+                    <div className="bg-yellow-500/10 border border-yellow-500/20 rounded-lg p-4 mb-6 max-w-md mx-auto">
+                      <p className="text-yellow-400 text-sm">
+                        <strong>Current Plan:</strong> {selectedOrg?.plan.name || 'Basic'}
+                        <br />
+                        <strong>Required:</strong> Enterprise Plan
+                      </p>
+                    </div>
+                    <button
+                      onClick={() => setActiveTab('billing')}
+                      className="bg-gradient-to-r from-yellow-500 to-orange-500 hover:from-yellow-600 hover:to-orange-600 text-white px-6 py-3 rounded-lg font-medium transition-colors"
+                    >
+                      <Crown className="w-4 h-4 mr-2 inline" />
+                      Upgrade to Enterprise
+                    </button>
+                  </div>
+                )}
               </div>
             )}
 

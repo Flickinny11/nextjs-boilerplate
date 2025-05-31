@@ -33,6 +33,7 @@ import {
   CollaborationOpportunity,
   PerformanceInsight
 } from '@/lib/organizationTypes'
+import { FeatureRequestsManager } from '@/components/features/FeatureRequestsManager'
 
 interface ManagerConsoleProps {
   organizationId: string;
@@ -231,7 +232,7 @@ export default function ManagerConsole({ organizationId, managerId }: ManagerCon
 
       {/* Main Content Tabs */}
       <Tabs value={activeTab} onValueChange={setActiveTab} className="space-y-6">
-        <TabsList className="grid w-full grid-cols-4 bg-gray-900/50 border-gray-700">
+        <TabsList className="grid w-full grid-cols-5 bg-gray-900/50 border-gray-700">
           <TabsTrigger value="dashboard" className="flex items-center gap-2">
             <BarChart3 className="w-4 h-4" />
             Dashboard
@@ -244,8 +245,12 @@ export default function ManagerConsole({ organizationId, managerId }: ManagerCon
             <Bell className="w-4 h-4" />
             Smart Alerts
           </TabsTrigger>
-          <TabsTrigger value="insights" className="flex items-center gap-2">
+          <TabsTrigger value="features" className="flex items-center gap-2">
             <Lightbulb className="w-4 h-4" />
+            Feature Requests
+          </TabsTrigger>
+          <TabsTrigger value="insights" className="flex items-center gap-2">
+            <TrendingUp className="w-4 h-4" />
             Insights
           </TabsTrigger>
         </TabsList>
@@ -483,6 +488,11 @@ export default function ManagerConsole({ organizationId, managerId }: ManagerCon
               </motion.div>
             ))}
           </div>
+        </TabsContent>
+
+        {/* Feature Requests Tab */}
+        <TabsContent value="features" className="space-y-6">
+          <FeatureRequestsManager managerId={managerId} />
         </TabsContent>
 
         {/* Insights Tab */}

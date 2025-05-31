@@ -22,7 +22,8 @@ import {
   Target,
   Building2,
   Video,
-  Palette
+  Palette,
+  Rocket
 } from "lucide-react";
 
 export function Header() {
@@ -40,6 +41,7 @@ export function Header() {
       { href: "/crm", label: "CRM", icon: Target },
       { href: "/organization", label: "Organization", icon: Building2 },
       { href: "/marketing", label: "Marketing", icon: Zap },
+      { href: "/marketing/advanced", label: "Advanced Marketing", icon: Rocket, isAdvanced: true },
       { href: "/create", label: "Create", icon: Palette },
       { href: "/settings", label: "Settings", icon: Settings },
       { href: "/api", label: "API", icon: ServerCog },
@@ -62,9 +64,13 @@ export function Header() {
               <Link 
                 key={item.href} 
                 href={item.href}
-                className="text-gray-300 hover:text-white transition-colors duration-200 flex items-center space-x-1"
+                className={`transition-all duration-200 flex items-center space-x-1 ${
+                  item.isAdvanced 
+                    ? "text-transparent bg-clip-text bg-gradient-to-r from-purple-400 via-pink-500 to-red-500 hover:from-purple-300 hover:via-pink-400 hover:to-red-400 animate-pulse" 
+                    : "text-gray-300 hover:text-white"
+                }`}
               >
-                <item.icon className="w-4 h-4" />
+                <item.icon className={`w-4 h-4 ${item.isAdvanced ? "text-purple-500" : ""}`} />
                 <span>{item.label}</span>
               </Link>
             ))}
@@ -99,10 +105,14 @@ export function Header() {
                   >
                     <Link
                       href={item.href}
-                      className="block px-4 py-2 text-gray-300 hover:text-white hover:bg-gray-800 rounded-lg transition-colors duration-200 flex items-center space-x-2"
+                      className={`block px-4 py-2 rounded-lg transition-all duration-200 flex items-center space-x-2 ${
+                        item.isAdvanced 
+                          ? "text-transparent bg-clip-text bg-gradient-to-r from-purple-400 via-pink-500 to-red-500 hover:bg-gradient-to-r hover:from-purple-900/20 hover:via-pink-900/20 hover:to-red-900/20" 
+                          : "text-gray-300 hover:text-white hover:bg-gray-800"
+                      }`}
                       onClick={() => setIsMenuOpen(false)}
                     >
-                      <item.icon className="w-4 h-4" />
+                      <item.icon className={`w-4 h-4 ${item.isAdvanced ? "text-purple-500" : ""}`} />
                       <span>{item.label}</span>
                     </Link>
                   </motion.div>

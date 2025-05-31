@@ -33,6 +33,7 @@ export function Header() {
     { href: "/contact", label: "Contact", icon: Mail },
     ...(user ? [
       { href: "/dashboard", label: "Dashboard", icon: BarChart },
+      { href: "/captureit", label: "CaptureIT", icon: Video },
       { href: "/leads", label: "Leads", icon: Users },
       { href: "/crm", label: "CRM", icon: Target },
       { href: "/organization", label: "Organization", icon: Building2 },

@@ -2,8 +2,6 @@
 
 import { useState, useEffect, useRef } from 'react';
 import { motion, AnimatePresence } from 'framer-motion';
-import { Canvas } from '@react-three/fiber';
-import { OrbitControls, Environment } from '@react-three/drei';
 import { Card } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
@@ -317,32 +315,32 @@ export function CaptureITCalls({ roomId, onCallEnd }: CaptureITCallsProps) {
 
   return (
     <div className="relative h-screen bg-gradient-to-br from-black via-gray-900 to-black overflow-hidden">
-      {/* 3D Background Environment */}
+      {/* Animated Background */}
       <div className="absolute inset-0 z-0">
-        <Canvas camera={{ position: [0, 0, 5] }}>
-          <ambientLight intensity={0.2} />
-          <pointLight position={[10, 10, 10]} />
-          <Environment preset="city" />
-          <OrbitControls enableZoom={false} enablePan={false} autoRotate autoRotateSpeed={0.5} />
-          
-          {/* 3D Virtual Meeting Room */}
-          <mesh position={[0, 0, -5]} scale={[20, 20, 1]}>
-            <planeGeometry />
-            <meshStandardMaterial color="#0f0f23" transparent opacity={0.3} />
-          </mesh>
-          
+        <div className="absolute inset-0 bg-[url('/grid.svg')] opacity-10" />
+        <div className="absolute inset-0">
           {/* Floating particles */}
-          {Array.from({ length: 50 }).map((_, i) => (
-            <mesh key={i} position={[
-              (Math.random() - 0.5) * 20,
-              (Math.random() - 0.5) * 20,
-              (Math.random() - 0.5) * 20
-            ]}>
-              <sphereGeometry args={[0.02]} />
-              <meshStandardMaterial color="#3b82f6" transparent opacity={0.6} />
-            </mesh>
+          {Array.from({ length: 20 }).map((_, i) => (
+            <motion.div
+              key={i}
+              className="absolute w-2 h-2 bg-blue-500/30 rounded-full"
+              animate={{
+                x: [0, Math.random() * 100 - 50],
+                y: [0, Math.random() * 100 - 50],
+                opacity: [0.3, 0.7, 0.3]
+              }}
+              transition={{
+                duration: 5 + Math.random() * 5,
+                repeat: Infinity,
+                repeatType: 'reverse'
+              }}
+              style={{
+                left: `${Math.random() * 100}%`,
+                top: `${Math.random() * 100}%`
+              }}
+            />
           ))}
-        </Canvas>
+        </div>
       </div>
 
       {/* Main Call Interface */}

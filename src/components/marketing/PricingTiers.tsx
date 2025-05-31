@@ -37,7 +37,18 @@ const individualTiers = [
   }
 ];
 
-const organizationTiers = [
+interface OrganizationTier {
+  name: string;
+  price: string;
+  description: string;
+  maxMembers: "5" | "25" | "Unlimited";
+  credits: string;
+  features: string[];
+  popular?: boolean;
+  highlight?: string;
+}
+
+const organizationTiers: OrganizationTier[] = [
   {
     name: "Team",
     price: "$25",
@@ -219,7 +230,7 @@ export function PricingTiers() {
                 </ul>
 
                 {/* Manager Console Highlight for Enterprise */}
-                {tier.name === 'Enterprise' && viewMode === 'organization' && 'highlight' in tier && (
+                {tier.name === 'Enterprise' && viewMode === 'organization' && tier.highlight && (
                   <div className="mb-6 p-4 bg-gradient-to-r from-blue-500/10 to-purple-500/10 border border-blue-500/20 rounded-lg">
                     <div className="text-center">
                       <div className="text-sm font-semibold text-blue-400 mb-2">🔥 EXCLUSIVE ENTERPRISE FEATURE</div>

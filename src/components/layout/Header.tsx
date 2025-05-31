@@ -6,6 +6,7 @@ import { motion, AnimatePresence } from "framer-motion";
 import { useAuth } from "@/context/AuthContext";
 import { Button } from "@/components/ui/button";
 import { Logo } from "@/components/ui/Logo";
+import { UserMenu } from "@/components/layout/UserMenu";
 import { 
   Menu,
   X,
@@ -74,6 +75,9 @@ export function Header() {
                 <span>{item.label}</span>
               </Link>
             ))}
+            
+            {/* User Menu */}
+            {user && <UserMenu />}
           </div>
 
           {/* Mobile Menu Button */}

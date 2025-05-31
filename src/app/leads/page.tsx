@@ -12,6 +12,7 @@ import type { Lead, LeadCriteria } from "@/lib/aiServices";
 import { crmService } from "@/lib/crmService";
 import Link from "next/link";
 import { TerritorySelectionMap } from "@/components/maps/TerritorySelectionMap";
+import { CRMImportModal } from "@/components/crm/CRMImportModal";
 
 import { ProtectedRoute } from "@/components/auth/ProtectedRoute";
 
@@ -43,6 +44,7 @@ function LeadCaptureContent() {
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState<string | null>(null);
   const [leads, setLeads] = useState<Lead[]>([]);
+  const [showCRMImport, setShowCRMImport] = useState(false);
 
   const handleCapture = async () => {
     try {
@@ -97,30 +99,15 @@ function LeadCaptureContent() {
     window.URL.revokeObjectURL(url);
   };
 
-  const handleImportToCRM = async () => {
-    try {
-      setLoading(true);
-      
-      // Convert leads to CRM contact format
-      const contactPromises = leads.map(lead => 
-        crmService.syncLeadToCRM(lead)
-      );
-      
-      const results = await Promise.all(contactPromises);
-      const successCount = results.filter(r => r.success).length;
-      
-      if (successCount > 0) {
-        setError(null);
-        // Show success message and redirect to CRM
-        alert(`Successfully imported ${successCount} leads to CRM!`);
-        window.location.href = '/crm/contacts';
-      } else {
-        setError("Failed to import leads to CRM");
-      }
-    } catch (err) {
-      setError(err instanceof Error ? err.message : "Failed to import to CRM");
-    } finally {
-      setLoading(false);
+  const handleImportToCRM = () => {
+    setShowCRMImport(true);
+  };
+
+  const handleImportComplete = (results: any[]) => {
+    const successCount = results.filter(r => r.success).length;
+    if (successCount > 0) {
+      setError(null);
+      // Optionally show a success toast here
     }
   };
 
@@ -362,6 +349,14 @@ function LeadCaptureContent() {
           </Card>
         </motion.div>
       </div>
+
+      {/* CRM Import Modal */}
+      <CRMImportModal
+        leads={leads}
+        isOpen={showCRMImport}
+        onClose={() => setShowCRMImport(false)}
+        onImportComplete={handleImportComplete}
+      />
     </div>
   );
 }

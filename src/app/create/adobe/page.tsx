@@ -28,11 +28,7 @@ import {
 import { adobeExpressService, AdobeProject, AdobeAccount, AdobeAsset } from '@/lib/adobeExpressService';
 import Link from 'next/link';
 
-interface AdobeDashboardProps {
-  onProjectSelect?: (project: AdobeProject) => void;
-}
-
-export default function AdobeDashboard({ onProjectSelect }: AdobeDashboardProps) {
+export default function AdobeDashboard() {
   const [connectedAccounts, setConnectedAccounts] = useState<AdobeAccount[]>([]);
   const [projects, setProjects] = useState<AdobeProject[]>([]);
   const [assets, setAssets] = useState<AdobeAsset[]>([]);
@@ -84,7 +80,6 @@ export default function AdobeDashboard({ onProjectSelect }: AdobeDashboardProps)
       if (newProject) {
         setProjects(prev => [newProject, ...prev]);
         setSelectedProject(newProject);
-        onProjectSelect?.(newProject);
       }
     } catch (error) {
       console.error('Error creating project:', error);
@@ -286,7 +281,6 @@ export default function AdobeDashboard({ onProjectSelect }: AdobeDashboardProps)
                         }`}
                         onClick={() => {
                           setSelectedProject(project);
-                          onProjectSelect?.(project);
                         }}
                       >
                         {/* Thumbnail */}

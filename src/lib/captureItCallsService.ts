@@ -547,21 +547,21 @@ export class CaptureITCallsService {
   async startScreenShare(): Promise<boolean> {
     try {
       const screenStream = await navigator.mediaDevices.getDisplayMedia({
-        video: { 
-          cursor: 'always',
-          displaySurface: 'monitor'
-        },
+        video: true as any, 
         audio: true
       });
 
       // Replace video track in all peer connections
       const videoTrack = screenStream.getVideoTracks()[0];
       this.peers.forEach(peer => {
-        const sender = peer._pc?.getSenders().find(s => 
-          s.track && s.track.kind === 'video'
-        );
-        if (sender) {
-          sender.replaceTrack(videoTrack);
+        const pc = (peer as any)._pc;
+        if (pc) {
+          const sender = pc.getSenders().find((s: any) => 
+            s.track && s.track.kind === 'video'
+          );
+          if (sender) {
+            sender.replaceTrack(videoTrack);
+          }
         }
       });
 
@@ -589,11 +589,14 @@ export class CaptureITCallsService {
     // Replace screen share with camera
     const videoTrack = this.localStream.getVideoTracks()[0];
     this.peers.forEach(peer => {
-      const sender = peer._pc?.getSenders().find(s => 
-        s.track && s.track.kind === 'video'
-      );
-      if (sender) {
-        sender.replaceTrack(videoTrack);
+      const pc = (peer as any)._pc;
+      if (pc) {
+        const sender = pc.getSenders().find((s: any) => 
+          s.track && s.track.kind === 'video'
+        );
+        if (sender) {
+          sender.replaceTrack(videoTrack);
+        }
       }
     });
 

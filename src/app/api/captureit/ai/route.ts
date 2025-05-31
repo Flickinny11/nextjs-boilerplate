@@ -55,8 +55,8 @@ export async function POST(request: NextRequest) {
         const negativeWords = ['bad', 'terrible', 'hate', 'angry', 'frustrated', 'disappointed'];
         
         const words = message.toLowerCase().split(' ');
-        const positiveCount = words.filter(word => positiveWords.includes(word)).length;
-        const negativeCount = words.filter(word => negativeWords.includes(word)).length;
+        const positiveCount = words.filter((word: string) => positiveWords.includes(word)).length;
+        const negativeCount = words.filter((word: string) => negativeWords.includes(word)).length;
         
         let score = 0;
         let label = 'neutral';

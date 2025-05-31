@@ -146,7 +146,7 @@ export function CaptureIT() {
                   Home
                 </Button>
                 <Button
-                  variant={currentView === 'calls' ? 'default' : 'ghost'}
+                  variant={(currentView as CaptureITView) === 'calls' ? 'default' : 'ghost'}
                   onClick={() => setCurrentView('calls')}
                   className="text-sm"
                 >
@@ -154,7 +154,7 @@ export function CaptureIT() {
                   Calls
                 </Button>
                 <Button
-                  variant={currentView === 'messages' ? 'default' : 'ghost'}
+                  variant={(currentView as CaptureITView) === 'messages' ? 'default' : 'ghost'}
                   onClick={() => setCurrentView('messages')}
                   className="text-sm"
                 >
@@ -484,7 +484,7 @@ export function CaptureIT() {
             <span className="text-xs">Home</span>
           </Button>
           <Button
-            variant={currentView === 'calls' ? 'default' : 'ghost'}
+            variant={(currentView as CaptureITView) === 'calls' ? 'default' : 'ghost'}
             size="sm"
             onClick={() => setCurrentView('calls')}
             className="flex-col h-auto py-2"
@@ -493,7 +493,7 @@ export function CaptureIT() {
             <span className="text-xs">Calls</span>
           </Button>
           <Button
-            variant={currentView === 'messages' ? 'default' : 'ghost'}
+            variant={(currentView as CaptureITView) === 'messages' ? 'default' : 'ghost'}
             size="sm"
             onClick={() => setCurrentView('messages')}
             className="flex-col h-auto py-2"

@@ -1,5 +1,6 @@
 import { openRouterService } from "./openRouterService";
 import { organizationService } from "./organizationService";
+import { TIER_CONFIGURATIONS, type UserTier } from "./tierModelConfig";
 
 interface PaymentPlan {
   id: string;
@@ -12,6 +13,8 @@ interface UserCredits {
   available: number;
   used: number;
   lastUpdated: Date;
+  tier: UserTier;
+  monthlyLimit: number;
 }
 
 interface PaymentResult {
@@ -29,25 +32,31 @@ interface APIUsage {
   timestamp: Date;
 }
 
-// Available payment plans
+// Available payment plans - Updated for profitability
 export const PAYMENT_PLANS: PaymentPlan[] = [
   {
-    id: 'basic',
-    name: '500 Credits',
-    credits: 500,
-    price: 49.99
+    id: 'entry',
+    name: 'Entry Plan',
+    credits: 250, // Reduced credits to ensure profitability
+    price: 5.00
   },
   {
-    id: 'pro', 
-    name: '1,000 Credits',
-    credits: 1000,
-    price: 89.99
+    id: 'professional', 
+    name: 'Professional Plan',
+    credits: 2000,
+    price: 40.00
   },
   {
-    id: 'enterprise',
-    name: '2,500 Credits',
-    credits: 2500,
-    price: 199.99
+    id: 'business',
+    name: 'Business Plan',
+    credits: 8000,
+    price: 60.00
+  },
+  {
+    id: 'premium',
+    name: 'Premium Plan',
+    credits: 20000,
+    price: 80.00
   }
 ];
 
@@ -98,11 +107,7 @@ export class PaymentService {
 
   // Add credits to user's account
   private async addCredits(userId: string, amount: number): Promise<void> {
-    const currentCredits = this.userCredits.get(userId) || {
-      available: 0,
-      used: 0,
-      lastUpdated: new Date()
-    };
+    const currentCredits = await this.getCreditBalance(userId);
 
     this.userCredits.set(userId, {
       ...currentCredits,
@@ -113,15 +118,15 @@ export class PaymentService {
 
   // Check if user has enough credits  
   async hasEnoughCredits(userId: string, required: number): Promise<boolean> {
-    const credits = this.userCredits.get(userId);
-    return credits ? credits.available >= required : false;
+    const credits = await this.getCreditBalance(userId);
+    return credits.available >= required;
   }
 
   // Deduct credits for API usage
   async deductCredits(userId: string, amount: number): Promise<boolean> {
     try {
-      const credits = this.userCredits.get(userId);
-      if (!credits || credits.available < amount) {
+      const credits = await this.getCreditBalance(userId);
+      if (credits.available < amount) {
         return false;
       }
 
@@ -139,18 +144,37 @@ export class PaymentService {
     }
   }
 
-  // Get user's credit balance
+  // Get user's credit balance with tier information
   async getCreditBalance(userId: string): Promise<UserCredits> {
-    return (
-      this.userCredits.get(userId) || {
-        available: 0,
-        used: 0,
-        lastUpdated: new Date()
-      }
-    );
+    const existing = this.userCredits.get(userId);
+    if (existing) {
+      return existing;
+    }
+    
+    // Default to entry tier for new users
+    return {
+      available: 0,
+      used: 0,
+      lastUpdated: new Date(),
+      tier: 'entry',
+      monthlyLimit: TIER_CONFIGURATIONS.entry.maxCreditsPerMonth
+    };
   }
 
-  // Track OpenRouter API usage with real costs
+  // Set user tier and update credit limits
+  async setUserTier(userId: string, tier: UserTier): Promise<void> {
+    const currentCredits = await this.getCreditBalance(userId);
+    const tierConfig = TIER_CONFIGURATIONS[tier];
+    
+    this.userCredits.set(userId, {
+      ...currentCredits,
+      tier,
+      monthlyLimit: tierConfig.maxCreditsPerMonth,
+      lastUpdated: new Date()
+    });
+  }
+
+  // Track OpenRouter API usage with tier-based credit calculation
   async trackOpenRouterUsage(
     userId: string, 
     model: string, 
@@ -162,8 +186,8 @@ export class PaymentService {
       // Calculate real cost using OpenRouter pricing
       const cost = openRouterService.calculateCost(model, promptTokens, completionTokens);
       
-      // Convert cost to credits (e.g., $0.01 = 1 credit)
-      const creditsUsed = Math.ceil(cost * 100);
+      // Calculate credits needed with tier multiplier
+      const creditsUsed = openRouterService.calculateCreditsNeeded(model, promptTokens, completionTokens);
 
       // If organization ID provided, use organization billing
       if (organizationId) {

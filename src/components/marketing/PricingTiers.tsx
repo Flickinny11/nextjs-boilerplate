@@ -7,66 +7,33 @@ import { useRouter } from "next/navigation";
 import { useAuth } from "@/context/AuthContext";
 import { CheckCircle2, Building2 } from "lucide-react";
 import { useState } from "react";
+import { TIER_CONFIGURATIONS } from "@/lib/tierModelConfig";
 
 const individualTiers = [
   {
     name: "Entry",
     price: "$5",
     description: "Perfect for individuals getting started",
-    features: [
-      "500 leads per month",
-      "Basic lead filtering",
-      "Email support",
-      "Basic analytics",
-      "CRM access",
-      "Territory mapping"
-    ]
+    features: TIER_CONFIGURATIONS.entry.features
   },
   {
     name: "Professional",
     price: "$40", 
     description: "For growing businesses and teams",
-    features: [
-      "5,000 leads per month",
-      "Advanced lead filtering",
-      "Priority support",
-      "Advanced analytics",
-      "Custom exports",
-      "Team collaboration",
-      "Email integration",
-      "Video conferencing"
-    ],
+    features: TIER_CONFIGURATIONS.professional.features,
     popular: true
   },
   {
     name: "Business",
     price: "$60",
     description: "For established businesses with advanced needs",
-    features: [
-      "15,000 leads per month",
-      "All Professional features",
-      "Canva integration",
-      "Adobe Express access",
-      "Advanced AI workflows",
-      "Custom integrations",
-      "API access",
-      "Dedicated support"
-    ]
+    features: TIER_CONFIGURATIONS.business.features
   },
   {
     name: "Premium",
     price: "$80",
     description: "For enterprises requiring maximum capabilities",
-    features: [
-      "Unlimited leads",
-      "All Business features",
-      "CaptureIT Calls & Messages",
-      "Advanced video conferencing",
-      "Custom AI models",
-      "White-label options",
-      "24/7 dedicated support",
-      "Custom features"
-    ]
+    features: TIER_CONFIGURATIONS.premium.features
   }
 ];
 

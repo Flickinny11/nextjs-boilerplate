@@ -1,4 +1,6 @@
 // OpenRouter API service for unified LLM access
+import { canAccessModel, type UserTier, calculateCreditCost } from './tierModelConfig';
+
 export interface OpenRouterModel {
   id: string;
   name: string;
@@ -11,6 +13,7 @@ export interface OpenRouterModel {
   top_provider: {
     max_completion_tokens: number;
   };
+  category?: 'base' | 'advanced' | 'premium';
 }
 
 export interface ChatMessage {
@@ -185,7 +188,7 @@ export class OpenRouterService {
   }
 
   /**
-   * Make a chat completion request to OpenRouter
+   * Make a chat completion request to OpenRouter with tier validation
    */
   async createChatCompletion(
     messages: ChatMessage[],
@@ -196,9 +199,16 @@ export class OpenRouterService {
       stream?: boolean;
       tools?: any[];
       tool_choice?: string;
+      userTier?: UserTier;
+      userId?: string;
     } = {}
   ): Promise<OpenRouterResponse> {
     try {
+      // Validate model access based on user tier
+      if (options.userTier && !canAccessModel(options.userTier, model)) {
+        throw new Error(`Model ${model} is not available for your current plan. Please upgrade to access this model.`);
+      }
+
       const response = await fetch(`${this.baseUrl}/chat/completions`, {
         method: 'POST',
         headers: {
@@ -231,7 +241,7 @@ export class OpenRouterService {
   }
 
   /**
-   * Calculate the cost of a request based on token usage
+   * Calculate the cost of a request based on token usage with tier-based multiplier
    */
   calculateCost(model: string, promptTokens: number, completionTokens: number): number {
     const modelInfo = OPENROUTER_MODELS[model];
@@ -247,10 +257,29 @@ export class OpenRouterService {
   }
 
   /**
-   * Get available models
+   * Calculate credits needed for a request (with 300% markup and tier multiplier)
    */
-  getAvailableModels(): OpenRouterModel[] {
-    return Object.values(OPENROUTER_MODELS);
+  calculateCreditsNeeded(model: string, promptTokens: number, completionTokens: number): number {
+    const baseCost = this.calculateCost(model, promptTokens, completionTokens);
+    const markupCost = baseCost * 3; // 300% markup
+    const creditMultiplier = calculateCreditCost(model);
+    
+    // Convert to credits: $0.01 = 1 credit, then apply tier multiplier
+    return Math.ceil(markupCost * 100 * creditMultiplier);
+  }
+
+  /**
+   * Get available models filtered by user tier
+   */
+  getAvailableModels(userTier?: UserTier): OpenRouterModel[] {
+    const allModels = Object.values(OPENROUTER_MODELS);
+    
+    if (!userTier) {
+      return allModels;
+    }
+
+    // Filter models based on user tier
+    return allModels.filter(model => canAccessModel(userTier, model.id));
   }
 
   /**
@@ -261,7 +290,7 @@ export class OpenRouterService {
   }
 
   /**
-   * Create a streaming chat completion
+   * Create a streaming chat completion with tier validation
    */
   async createStreamingChatCompletion(
     messages: ChatMessage[],
@@ -271,8 +300,14 @@ export class OpenRouterService {
       max_tokens?: number;
       tools?: any[];
       tool_choice?: string;
+      userTier?: UserTier;
     } = {}
   ): Promise<ReadableStream> {
+    // Validate model access based on user tier
+    if (options.userTier && !canAccessModel(options.userTier, model)) {
+      throw new Error(`Model ${model} is not available for your current plan. Please upgrade to access this model.`);
+    }
+
     const response = await fetch(`${this.baseUrl}/chat/completions`, {
       method: 'POST',
       headers: {

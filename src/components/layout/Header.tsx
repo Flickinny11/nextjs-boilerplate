@@ -20,7 +20,9 @@ import {
   Zap,
   Users,
   Target,
-  Building2
+  Building2,
+  Video,
+  Palette
 } from "lucide-react";
 
 export function Header() {
@@ -38,6 +40,7 @@ export function Header() {
       { href: "/crm", label: "CRM", icon: Target },
       { href: "/organization", label: "Organization", icon: Building2 },
       { href: "/marketing", label: "Marketing", icon: Zap },
+      { href: "/create", label: "Create", icon: Palette },
       { href: "/settings", label: "Settings", icon: Settings },
       { href: "/api", label: "API", icon: ServerCog },
       { href: "/status", label: "System Status", icon: ShieldCheck }

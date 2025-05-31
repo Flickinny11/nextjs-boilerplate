@@ -230,11 +230,11 @@ export function PricingTiers() {
                 </ul>
 
                 {/* Manager Console Highlight for Enterprise */}
-                {tier.name === 'Enterprise' && viewMode === 'organization' && tier.highlight && (
+                {tier.name === 'Enterprise' && viewMode === 'organization' && (tier as OrganizationTier).highlight && (
                   <div className="mb-6 p-4 bg-gradient-to-r from-blue-500/10 to-purple-500/10 border border-blue-500/20 rounded-lg">
                     <div className="text-center">
                       <div className="text-sm font-semibold text-blue-400 mb-2">🔥 EXCLUSIVE ENTERPRISE FEATURE</div>
-                      <div className="text-xs text-blue-300">{tier.highlight}</div>
+                      <div className="text-xs text-blue-300">{(tier as OrganizationTier).highlight}</div>
                     </div>
                   </div>
                 )}

@@ -346,6 +346,28 @@ class CRMService {
 
     return this.createContact(contactData)
   }
+
+  // Find contact by email for duplicate checking
+  async findContactByEmail(email: string): Promise<CRMResponse<CRMContact | null>> {
+    try {
+      const response = await fetch(`${CRM_API_BASE}/contacts/find-by-email?email=${encodeURIComponent(email)}`)
+      const result = await response.json()
+      
+      // If not found, return null data but success true
+      if (response.status === 404) {
+        return { success: true, data: null }
+      }
+      
+      return result
+    } catch (error) {
+      console.error('Error finding contact by email:', error)
+      return { 
+        success: false, 
+        error: 'Failed to search for existing contact',
+        data: null 
+      }
+    }
+  }
 }
 
 // Export singleton instance

@@ -19,6 +19,7 @@ import {
 import { motion } from "framer-motion";
 import { PricingTiers } from "components/marketing/PricingTiers";
 import { Features } from "components/marketing/Features";
+import { MobileAppDownload } from "components/marketing/MobileAppDownload";
 import { AnimatedBackground } from "components/ui/AnimatedBackground";
 
 export default function Home() {
@@ -229,6 +230,7 @@ export default function Home() {
               <LoginButton />
             </div>
           </motion.div>
+          <MobileAppDownload />
           <Features />
           <PricingTiers />
         </>

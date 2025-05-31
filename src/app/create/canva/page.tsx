@@ -24,11 +24,7 @@ import {
 import { canvaIntegrationService, CanvaDesign, CanvaAccount } from '@/lib/canvaIntegrationService';
 import Link from 'next/link';
 
-interface CanvaDashboardProps {
-  onDesignSelect?: (design: CanvaDesign) => void;
-}
-
-export default function CanvaDashboard({ onDesignSelect }: CanvaDashboardProps) {
+export default function CanvaDashboard() {
   const [connectedAccounts, setConnectedAccounts] = useState<CanvaAccount[]>([]);
   const [designs, setDesigns] = useState<CanvaDesign[]>([]);
   const [searchQuery, setSearchQuery] = useState('');
@@ -72,7 +68,6 @@ export default function CanvaDashboard({ onDesignSelect }: CanvaDashboardProps) 
       if (newDesign) {
         setDesigns(prev => [newDesign, ...prev]);
         setSelectedDesign(newDesign);
-        onDesignSelect?.(newDesign);
       }
     } catch (error) {
       console.error('Error creating design:', error);
@@ -210,7 +205,6 @@ export default function CanvaDashboard({ onDesignSelect }: CanvaDashboardProps) 
                     }`}
                     onClick={() => {
                       setSelectedDesign(design);
-                      onDesignSelect?.(design);
                     }}
                   >
                     {/* Thumbnail */}

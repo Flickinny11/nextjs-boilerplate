@@ -44,7 +44,6 @@ import {
   Bell,
   BellOff,
   Pin,
-  Unpin,
   Eye,
   EyeOff,
   Volume2,
@@ -64,8 +63,7 @@ import {
   ThumbsDown,
   Heart,
   Laugh,
-  Angry,
-  Sad
+  Angry
 } from 'lucide-react';
 import { 
   captureITMessagesService,

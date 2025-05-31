@@ -28,39 +28,57 @@ export default function SubscribePage() {
   const [selectedPlan, setSelectedPlan] = useState<string | null>(null);
 
   const plans: Record<string, PlanDetails> = {
-    starter: {
-      name: "Starter",
-      price: "$0",
+    entry: {
+      name: "Entry",
+      price: "$5",
       features: [
-        "100 leads per month",
+        "500 leads per month",
         "Basic lead filtering",
         "Email support",
-        "Basic analytics"
+        "Basic analytics",
+        "CRM access",
+        "Territory mapping"
       ]
     },
     professional: {
       name: "Professional",
-      price: "$49",
+      price: "$40",
       features: [
-        "1,000 leads per month",
+        "5,000 leads per month",
         "Advanced lead filtering",
         "Priority support",
         "Advanced analytics",
         "Custom exports",
-        "Team collaboration"
+        "Team collaboration",
+        "Email integration",
+        "Video conferencing"
       ]
     },
-    enterprise: {
-      name: "Enterprise",
-      price: "Custom",
+    business: {
+      name: "Business",
+      price: "$60",
+      features: [
+        "15,000 leads per month",
+        "All Professional features",
+        "Canva integration",
+        "Adobe Express access",
+        "Advanced AI workflows",
+        "Custom integrations",
+        "API access",
+        "Dedicated support"
+      ]
+    },
+    premium: {
+      name: "Premium",
+      price: "$80",
       features: [
         "Unlimited leads",
-        "Custom integrations",
+        "All Business features",
+        "CaptureIT Calls & Messages",
+        "Advanced video conferencing",
+        "Custom AI models",
+        "White-label options",
         "24/7 dedicated support",
-        "Advanced analytics",
-        "Custom exports",
-        "Team collaboration",
-        "API access",
         "Custom features"
       ]
     }

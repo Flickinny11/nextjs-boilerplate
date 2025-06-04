@@ -409,6 +409,11 @@ export class CaptureITMessagesService {
   // Initialize end-to-end encryption
   private async initializeEncryption(): Promise<void> {
     try {
+      // Only initialize encryption on client side
+      if (typeof window === 'undefined') {
+        return;
+      }
+      
       // Generate or retrieve encryption key
       this.encryptionKey = await window.crypto.subtle.generateKey(
         {
@@ -870,7 +875,7 @@ export class CaptureITMessagesService {
 
   // Encryption methods
   private async encryptMessage(message: CaptureITMessage): Promise<string> {
-    if (!this.encryptionKey) return JSON.stringify(message);
+    if (!this.encryptionKey || typeof window === 'undefined') return JSON.stringify(message);
 
     try {
       const messageString = JSON.stringify(message);
@@ -896,7 +901,7 @@ export class CaptureITMessagesService {
   }
 
   private async decryptMessage(encryptedData: string): Promise<CaptureITMessage> {
-    if (!this.encryptionKey) return JSON.parse(encryptedData);
+    if (!this.encryptionKey || typeof window === 'undefined') return JSON.parse(encryptedData);
 
     try {
       const encryptedMessage = JSON.parse(atob(encryptedData));

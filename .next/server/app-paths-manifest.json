@@ -1,1 +1,8 @@
-{}
+{
+  "/_not-found/page": "app/_not-found/page.js",
+  "/api/static-news/live/route": "app/api/static-news/live/route.js",
+  "/api/static-news/news/route": "app/api/static-news/news/route.js",
+  "/api/static-news/analytics/route": "app/api/static-news/analytics/route.js",
+  "/page": "app/page.js",
+  "/api/static-news/breakdown/route": "app/api/static-news/breakdown/route.js"
+}
